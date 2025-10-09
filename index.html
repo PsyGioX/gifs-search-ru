@@ -1,92 +1,323 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" itemscope itemtype="https://schema.org/WebApplication">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/styles.css">
-
+  
+  <!-- SEO Meta Tags -->
+  <title>GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы | Бесплатные GIF анимации</title>
+  <meta name="description" content="🚀 Лучший поисковик GIF анимаций! Тысячи смешных мемов, гифок с котиками, реакций и видео со звуком. Скачивайте бесплатно, делитесь с друзьями. Быстрый поиск по огромной коллекции GIF изображений.">
+  <meta name="keywords" content="gif, гифки, мемы, анимации, скачать гифки, поиск гифок, смешные гифки, гифки с котиками, реакции, стикеры, видео мемы">
+  <meta name="author" content="GIFS Поисковик">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="GIFS Поисковик">
+  <meta property="og:title" content="GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы">
+  <meta property="og:description" content="🚀 Находите и скачивайте лучшие GIF анимации! Огромная коллекция мемов, реакций и смешных гифок с котиками.">
+  <meta property="og:image" content="/resources/preview.jpg">
+  <meta property="og:url" content="https://gifs-search-ru.netlify.app/">
+  <meta property="og:locale" content="ru_RU">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GIFS Поисковик — Веселые гифки и мемы">
+  <meta name="twitter:description" content="Находите и скачивайте лучшие GIF анимации бесплатно">
+  <meta name="twitter:image" content="/resources/preview.jpg">
+  
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "GIFS Поисковик",
+    "description": "Поисковик GIF анимаций, мемов и стикеров с возможностью скачивания и分享",
+    "url": "https://gifs-search-ru.netlify.app/",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any",
+    "permissions": "browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "GIFS Поисковик"
+    }
+  }
+  </script>
+  
+  <!-- Favicon -->
   <link rel="shortcut icon" href="/favicon/favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
   <link rel="manifest" href="/favicon/site.webmanifest">
-
-  <meta name="description"
-    content="GIFS - ваша ежедневная порция смешных мемов, весёлых гифок с котиками и крутых видео со звуком. Тысячи пользователей регулярно публикуют сотни новых гифок и стикеров, огромная коллекция юмора на каждый день. Вы легко можете скачать гифку или стикер, поделиться ими с друзьями. Для разработчиков у нас есть API GIFS.">
-  <meta property="og:type" content="website">
-  <meta property="site_name" content="GIFS">
-  <meta property="locale" content="ru_RU">
-  <meta property="og:description"
-    content="GIFS - ваша ежедневная порция смешных мемов, весёлых гифок с котиками и крутых видео со звуком.">
-  <meta property="og:title" content="GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы">
-  <meta property="og:image" content="/resources/prrview.jpg">
-
-  <meta name="yandex-verification" content="f675728736d21732" />
-  <meta name="google-site-verification" content="PNUPp1rtd7VsHIv6hhlrBH8ZpM7l-xRwhTcsaE0Tfao" />
+  <meta name="theme-color" content="#00BC5E">
+  <meta name="msapplication-TileColor" content="#00BC5E">
   
-  <title>GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы</title>
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="/styles.css" as="style">
+  <link rel="preload" href="script.js" as="script">
+  
+  <!-- Preconnect to External Domains -->
+  <link rel="preconnect" href="https://api.giphy.com">
+  <link rel="dns-prefetch" href="https://api.giphy.com">
+  
+  <!-- Verification -->
+  <meta name="yandex-verification" content="f675728736d21732">
+  <meta name="google-site-verification" content="PNUPp1rtd7VsHIv6hhlrBH8ZpM7l-xRwhTcsaE0Tfao">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://gifs-search-ru.netlify.app/">
+  
+  <style>
+    /* Critical CSS - Inline for faster loading */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #61ff90, #24d65a);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .loader {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .loader:after {
+      content: '';
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f0f0f0;
+      border-top: 4px solid #00BC5E;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .app {
+      background: white;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 1200px;
+      height: 95vh;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+  
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/styles.css"></noscript>
 </head>
 
 <body>
-  <div class="loader" id="loader"></div>
+  <!-- Loading Indicator -->
+  <div class="loader" id="loader" aria-live="polite" aria-label="Загрузка контента"></div>
 
-  <div class="app">
-    <header>
-      <h1>GIFS Поисковик</h1>
-      <p>Найдите, просмотрите и скачайте GIFs</p>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-link">Перейти к основному контенту</a>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему" title="Сменить тему">
+    <span class="theme-icon">🌙</span>
+  </button>
+
+  <div class="app" role="main" id="main-content">
+    <!-- Header with improved semantics -->
+    <header role="banner">
+      <h1 itemprop="name">GIFS Поисковик</h1>
+      <p itemprop="description">Найдите, просмотрите и скачайте лучшие GIF анимации</p>
     </header>
 
-    <form id="search-form" class="search-form">
-      <input type="text" id="search-input" placeholder="Начните печатать..." required>
-      <button type="submit">🔍 Поиск</button>
-    </form>
+    <!-- Search Section -->
+    <section aria-labelledby="search-title" class="search-section">
+      <h2 id="search-title" class="visually-hidden">Поиск GIF анимаций</h2>
+      
+      <form id="search-form" class="search-form" role="search" aria-label="Поиск GIF анимаций">
+        <div class="search-input-wrapper">
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Например: котики, мемы, реакции..." 
+            required
+            aria-required="true"
+            aria-describedby="search-help"
+          >
+          <button type="submit" aria-label="Выполнить поиск">
+            <span class="search-icon">🔍</span>
+            Поиск
+          </button>
+        </div>
+        <p id="search-help" class="search-help">Введите ключевые слова для поиска GIF анимаций</p>
+      </form>
+    </section>
 
-    <div class="controls">
-      <div class="control-group">
-        <button id="trending-btn">🔥 Популярные</button>
-        <button id="theme-toggle">🌙 Тема</button>
+    <!-- Quick Categories -->
+    <section aria-labelledby="categories-title" class="categories">
+      <h2 id="categories-title" class="visually-hidden">Популярные категории</h2>
+      <div class="categories-grid">
+        <button class="category-btn" data-category="cats" aria-label="Поиск гифок с котиками">😺 Котики</button>
+        <button class="category-btn" data-category="memes" aria-label="Поиск мемов">😂 Мемы</button>
+        <button class="category-btn" data-category="reactions" aria-label="Поиск реакций">🎭 Реакции</button>
+        <button class="category-btn" data-category="animals" aria-label="Поиск гифок с животными">🐶 Животные</button>
       </div>
-    </div>
+    </section>
 
-    <div id="search-history" class="search-history"></div>
+    <!-- Controls -->
+    <section class="controls" aria-label="Управление контентом">
+      <div class="control-group">
+        <button id="trending-btn" class="active" aria-pressed="true">
+          <span class="btn-icon">🔥</span>
+          Популярные
+        </button>
+        <button id="random-btn" aria-pressed="false">
+          <span class="btn-icon">🎲</span>
+          Случайные
+        </button>
+      </div>
+      
+      <!-- Results Info -->
+      <div class="results-info" id="results-info" aria-live="polite">
+        <span id="results-count">Загрузка...</span>
+      </div>
+    </section>
 
-    <div id="error-message" class="error-message"></div>
+    <!-- Search History -->
+    <section aria-labelledby="history-title" class="search-history-section">
+      <h3 id="history-title" class="visually-hidden">История поиска</h3>
+      <div id="search-history" class="search-history" aria-live="polite"></div>
+    </section>
 
-    <h2 id="section-title">Популярные GIFs</h2>
-    <div id="gif-container" class="gif-container"></div>
-    <button id="load-more" class="load-more" style="display: none;">Загрузить еще</button>
+    <!-- Error Message -->
+    <div id="error-message" class="error-message" role="alert" aria-live="assertive"></div>
+
+    <!-- Main Content -->
+    <section aria-labelledby="section-title">
+      <h2 id="section-title" class="section-title">🔥 Популярные GIFs</h2>
+      
+      <!-- GIF Container -->
+      <div id="gif-container" class="gif-container" role="list" aria-label="Коллекция GIF анимаций">
+        <!-- GIF cards will be inserted here -->
+      </div>
+
+      <!-- Pagination -->
+      <nav class="pagination" aria-label="Навигация по страницам">
+        <button id="prev-page" class="pagination-btn" disabled aria-label="Предыдущая страница">
+          ← Назад
+        </button>
+        
+        <div class="pagination-info">
+          <span id="current-page">1</span> из <span id="total-pages">1</span>
+        </div>
+        
+        <button id="next-page" class="pagination-btn" aria-label="Следующая страница">
+          Вперед →
+        </button>
+      </nav>
+
+      <!-- Load More -->
+      <button id="load-more" class="load-more" style="display: none;" aria-label="Загрузить больше GIF">
+        <span class="load-more-icon">⬇️</span>
+        Загрузить еще
+      </button>
+    </section>
   </div>
 
   <!-- Modal -->
-  <div id="modal" class="modal">
-    <span class="close-button">&times;</span>
-    <div class="modal-content">
-      <img id="modal-gif" class="modal-gif" src="" alt="GIF">
-      <div class="gif-info">
-        <h3 id="modal-title">GIF</h3>
-        <p id="modal-rating">Рейтинг: N/A</p>
-        <p id="modal-size">Размер: N/A</p>
-        <div class="modal-actions">
-          <a id="download-link" href="" download class="btn primary">Скачать GIF</a>
-          <button id="copy-link" class="btn secondary">Копировать ссылку</button>
-          <button id="share-btn" class="btn secondary">Поделиться</button>
+  <div id="modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true" hidden>
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" role="document">
+      <button class="close-button" aria-label="Закрыть модальное окно">
+        &times;
+      </button>
+      
+      <div class="modal-body">
+        <img 
+          id="modal-gif" 
+          class="modal-gif" 
+          src="" 
+          alt="" 
+          loading="lazy"
+        >
+        
+        <div class="gif-info">
+          <h3 id="modal-title">GIF анимация</h3>
+          <div class="gif-meta">
+            <p id="modal-rating"><strong>Рейтинг:</strong> <span>N/A</span></p>
+            <p id="modal-size"><strong>Размер:</strong> <span>N/A</span></p>
+            <p id="modal-uploaded"><strong>Загружено:</strong> <span>N/A</span></p>
+          </div>
+          
+          <div class="modal-actions">
+            <a id="download-link" href="" download class="btn primary" aria-label="Скачать GIF">
+              <span class="btn-icon">⬇️</span>
+              Скачать GIF
+            </a>
+            <button id="copy-link" class="btn secondary" aria-label="Копировать ссылку">
+              <span class="btn-icon">📋</span>
+              Копировать ссылку
+            </button>
+            <button id="share-btn" class="btn secondary" aria-label="Поделиться GIF">
+              <span class="btn-icon">📤</span>
+              Поделиться
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-content">
+      <p>&copy; 2024 GIFS Поисковик. Все права защищены.</p>
+      <p>Powered by GIPHY API</p>
+      <nav class="footer-nav" aria-label="Дополнительная навигация">
+        <a href="/privacy" class="footer-link">Политика конфиденциальности</a>
+        <a href="/terms" class="footer-link">Условия использования</a>
+        <a href="/api" class="footer-link">API для разработчиков</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Notification -->
+  <div id="notification" class="notification" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Scripts -->
+  <script src="script.js" defer></script>
 
   <!-- Yandex.Metrika counter -->
   <script type="text/javascript">
-    (function (m, e, t, r, i, k, a) {
-      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
-      m[i].l = 1 * new Date();
-      for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
-      k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-    })
-      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
     ym(99425095, "init", {
       clickmap: true,
@@ -96,9 +327,18 @@
     });
   </script>
   <noscript>
-    <div><img src="https://mc.yandex.ru/watch/99425095" style="position:absolute; left:-9999px;" alt="" /></div>
+    <div><img src="https://mc.yandex.ru/watch/99425095" style="position:absolute; left:-9999px;" alt="Yandex Metrika"></div>
   </noscript>
   <!-- /Yandex.Metrika counter -->
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'GA_MEASUREMENT_ID');
+  </script>
 </body>
 
 </html>
