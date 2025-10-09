@@ -1,34 +1,23 @@
 const apiKey = 'nKgfbOgAYgouYwdAy51hqzbrbbgYIfVF';
 
-// DOM Elements
-const elements = {
-    form: document.getElementById('search-form'),
-    input: document.getElementById('search-input'),
-    gifContainer: document.getElementById('gif-container'),
-    modal: document.getElementById('modal'),
-    modalGif: document.getElementById('modal-gif'),
-    downloadLink: document.getElementById('download-link'),
-    closeButton: document.querySelector('.close-button'),
-    loader: document.getElementById('loader'),
-    sectionTitle: document.getElementById('section-title'),
-    loadMoreBtn: document.getElementById('load-more'),
-    trendingBtn: document.getElementById('trending-btn'),
-    randomBtn: document.getElementById('random-btn'),
-    searchHistory: document.getElementById('search-history'),
-    themeToggle: document.getElementById('theme-toggle'),
-    errorMessage: document.getElementById('error-message'),
-    copyLink: document.getElementById('copy-link'),
-    shareBtn: document.getElementById('share-btn'),
-    modalTitle: document.getElementById('modal-title'),
-    modalRating: document.getElementById('modal-rating'),
-    modalSize: document.getElementById('modal-size'),
-    prevPage: document.getElementById('prev-page'),
-    nextPage: document.getElementById('next-page'),
-    currentPage: document.getElementById('current-page'),
-    totalPages: document.getElementById('total-pages'),
-    resultsInfo: document.getElementById('results-info'),
-    resultsCount: document.getElementById('results-count')
-};
+// DOM Elements - оптимизированная инициализация
+const elements = {};
+const elementIds = [
+    'search-form', 'search-input', 'gif-container', 'modal', 'modal-gif',
+    'download-link', 'close-button', 'loader', 'section-title', 'load-more',
+    'trending-btn', 'random-btn', 'search-history', 'theme-toggle', 'error-message',
+    'copy-link', 'share-btn', 'modal-title', 'modal-rating', 'modal-size',
+    'prev-page', 'next-page', 'current-page', 'total-pages', 'results-info', 'results-count'
+];
+
+// Инициализация элементов DOM
+elementIds.forEach(id => {
+    const element = document.getElementById(id) || document.querySelector(`.${id}`);
+    if (element) {
+        const key = id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+        elements[key] = element;
+    }
+});
 
 // Конфигурация
 const CONFIG = {
@@ -61,16 +50,17 @@ const state = {
     currentModalGif: null
 };
 
-// Кэширование
+// Кэширование с улучшенной логикой
 const cacheManager = {
     get(key) {
         const cached = state.cache.get(key);
         if (cached && Date.now() - cached.timestamp < CONFIG.cacheTTL) {
+            // Move to end (LRU)
             state.cache.delete(key);
             state.cache.set(key, cached);
             return cached.data;
         }
-        state.cache.delete(key);
+        if (cached) state.cache.delete(key);
         return null;
     },
     
@@ -82,16 +72,8 @@ const cacheManager = {
         state.cache.set(key, {
             data,
             timestamp: Date.now(),
-            size: this.calculateSize(data)
+            size: new Blob([JSON.stringify(data)]).size || 0
         });
-    },
-    
-    calculateSize(data) {
-        try {
-            return new Blob([JSON.stringify(data)]).size;
-        } catch {
-            return 0;
-        }
     },
     
     clear() {
@@ -108,11 +90,27 @@ function initApp() {
 
     applyTheme();
     setupImageObserver();
-    loadTrendingGIFs();
-    renderSearchHistory();
     setupEventListeners();
     setupAccessibility();
-    trackAnalytics('page_view', { page: 'home' });
+    loadTrendingGIFs();
+    renderSearchHistory();
+    
+    // Предзагрузка популярных тегов для случайных GIF
+    preloadRandomTags();
+}
+
+// Предзагрузка данных для случайных GIF
+async function preloadRandomTags() {
+    try {
+        const response = await fetch(
+            `${CONFIG.apiBaseURL}/trending?api_key=${apiKey}&limit=10`
+        );
+        if (response.ok) {
+            await response.json();
+        }
+    } catch (error) {
+        // Игнорируем ошибки предзагрузки
+    }
 }
 
 // Сброс состояния
@@ -125,47 +123,47 @@ function resetState() {
     state.retryCount = 0;
 }
 
-// Показать/скрыть пагинацию
+// Управление пагинацией
 function showPagination() {
+    if (elements.loadMoreBtn) elements.loadMoreBtn.style.display = 'block';
     const pagination = document.querySelector('.pagination');
-    if (pagination) {
-        pagination.style.display = 'flex';
-    }
-    elements.loadMoreBtn.style.display = 'block';
+    if (pagination) pagination.style.display = 'flex';
 }
 
 function hidePagination() {
+    if (elements.loadMoreBtn) elements.loadMoreBtn.style.display = 'none';
     const pagination = document.querySelector('.pagination');
-    if (pagination) {
-        pagination.style.display = 'none';
-    }
-    elements.loadMoreBtn.style.display = 'none';
+    if (pagination) pagination.style.display = 'none';
 }
 
-// Настройка Intersection Observer
+// Настройка Intersection Observer с улучшенной производительностью
 function setupImageObserver() {
     state.imageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const img = entry.target;
-                img.src = img.dataset.src;
-                img.classList.remove('lazy');
-                state.imageObserver.unobserve(img);
+                const src = img.dataset.src;
+                if (src) {
+                    img.src = src;
+                    img.classList.remove('lazy');
+                    img.removeAttribute('data-src');
+                    state.imageObserver.unobserve(img);
+                }
             }
         });
     }, {
-        rootMargin: '50px 0px',
-        threshold: 0.1
+        rootMargin: '100px 0px',
+        threshold: 0.01
     });
 }
 
-// Настройка обработчиков событий
+// Оптимизированная настройка обработчиков событий
 function setupEventListeners() {
     const eventHandlers = [
         { element: elements.form, event: 'submit', handler: handleSearch },
         { element: elements.loadMoreBtn, event: 'click', handler: loadMoreGIFs },
-        { element: elements.trendingBtn, event: 'click', handler: loadTrendingGIFs },
-        { element: elements.randomBtn, event: 'click', handler: loadRandomGIFs },
+        { element: elements.trendingBtn, event: 'click', handler: () => loadTrendingGIFs() },
+        { element: elements.randomBtn, event: 'click', handler: () => loadRandomGIFs() },
         { element: elements.closeButton, event: 'click', handler: closeModal },
         { element: elements.themeToggle, event: 'click', handler: toggleTheme },
         { element: elements.copyLink, event: 'click', handler: handleCopyLink },
@@ -178,7 +176,7 @@ function setupEventListeners() {
         element?.addEventListener(event, handler);
     });
 
-    // Делегирование событий
+    // Делегирование событий с улучшенной производительностью
     elements.gifContainer?.addEventListener('click', (e) => {
         const card = e.target.closest('.gif-card');
         if (!card) return;
@@ -195,6 +193,7 @@ function setupEventListeners() {
         }
     });
 
+    // Закрытие модального окна
     elements.modal?.addEventListener('click', (e) => {
         if (e.target === elements.modal || e.target.classList.contains('modal-backdrop')) {
             closeModal();
@@ -205,7 +204,7 @@ function setupEventListeners() {
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const category = e.target.dataset.category;
-            searchByCategory(category);
+            if (category) searchByCategory(category);
         });
     });
 
@@ -217,20 +216,19 @@ function setupEventListeners() {
         }
     });
 
-    // Закрытие по ESC
+    // Глобальные обработчики
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && elements.modal?.style.display === 'flex') {
             closeModal();
         }
     });
 
-    // Автопоиск
-    let searchTimeout;
+    // Автопоиск с дебаунсом
     elements.input?.addEventListener('input', debounce((e) => {
         const query = e.target.value.trim();
         if (query.length > 2) {
             performSearch(query, true);
-        } else if (query.length === 0 && state.lastSearchType !== 'trending') {
+        } else if (!query && state.lastSearchType !== 'trending') {
             loadTrendingGIFs();
         }
     }, CONFIG.debounceDelay));
@@ -238,29 +236,19 @@ function setupEventListeners() {
 
 // Настройка доступности
 function setupAccessibility() {
-    elements.modal?.setAttribute('aria-hidden', 'true');
-    elements.loader?.setAttribute('aria-live', 'polite');
+    if (elements.modal) {
+        elements.modal.setAttribute('aria-hidden', 'true');
+        elements.modal.setAttribute('role', 'dialog');
+        elements.modal.setAttribute('aria-labelledby', 'modal-title');
+    }
     
-    elements.modal?.addEventListener('keydown', (e) => {
-        if (e.key === 'Tab' && elements.modal.style.display === 'flex') {
-            const focusableElements = elements.modal.querySelectorAll(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
-            const firstElement = focusableElements[0];
-            const lastElement = focusableElements[focusableElements.length - 1];
-            
-            if (e.shiftKey && document.activeElement === firstElement) {
-                e.preventDefault();
-                lastElement.focus();
-            } else if (!e.shiftKey && document.activeElement === lastElement) {
-                e.preventDefault();
-                firstElement.focus();
-            }
-        }
-    });
+    if (elements.loader) {
+        elements.loader.setAttribute('aria-live', 'polite');
+        elements.loader.setAttribute('aria-atomic', 'true');
+    }
 }
 
-// Загрузка популярных GIF
+// Основные функции загрузки GIF
 async function loadTrendingGIFs() {
     if (state.isLoading) return;
     
@@ -273,36 +261,23 @@ async function loadTrendingGIFs() {
             state.abortController.abort();
         }
         
-        // Сбрасываем состояние
         resetState();
         state.lastSearchType = 'trending';
         
-        elements.gifContainer.innerHTML = '';
-        
-        // Обновляем UI
+        clearGifContainer();
         elements.sectionTitle.textContent = '🔥 Популярные GIF';
         updateActiveButton('trending');
-        
-        // Показываем пагинацию
         showPagination();
         
-        // Загружаем GIF
         await fetchAndDisplayGIFs('trending');
         
-        trackAnalytics('view_trending');
-        
     } catch (error) {
-        if (error.name !== 'AbortError') {
-            console.error('Error loading trending GIFs:', error);
-            showError('Ошибка загрузки популярных GIF. Проверьте подключение к интернету.');
-            trackAnalytics('error', { type: 'trending_load_error', message: error.message });
-        }
+        handleLoadError(error, 'trending');
     } finally {
         hideLoader();
     }
 }
 
-// Загрузка случайных GIF
 async function loadRandomGIFs() {
     if (state.isLoading) return;
     
@@ -314,26 +289,13 @@ async function loadRandomGIFs() {
             state.abortController.abort();
         }
         
-        // Полный сброс состояния для random
-        state.currentQuery = '';
-        state.currentOffset = 0;
-        state.currentPage = 1;
-        state.currentGIFs = [];
-        state.totalCount = 0;
-        state.lastSearchType = 'random'; // Устанавливаем тип ДО загрузки
+        resetState();
+        state.lastSearchType = 'random';
         
-        elements.gifContainer.innerHTML = '';
-        
-        // Обновляем UI до загрузки
+        clearGifContainer();
         elements.sectionTitle.textContent = '🎲 Случайные GIF';
         updateActiveButton('random');
-        
-        // Скрываем пагинацию для случайных GIF
-        const pagination = document.querySelector('.pagination');
-        if (pagination) {
-            pagination.style.display = 'none';
-        }
-        elements.loadMoreBtn.style.display = 'none';
+        hidePagination();
         
         const randomGIFs = await fetchRandomGIFs();
         
@@ -345,59 +307,42 @@ async function loadRandomGIFs() {
         displayGIFs(randomGIFs);
         state.currentGIFs = randomGIFs;
         state.totalCount = randomGIFs.length;
-        updateResultsInfo(randomGIFs.length);
-        
-        trackAnalytics('view_random');
+        updateResultsInfo();
         
     } catch (error) {
-        if (error.name !== 'AbortError') {
-            console.error('Error loading random GIFs:', error);
-            showError('Ошибка загрузки случайных GIF. Проверьте подключение к интернету.');
-            trackAnalytics('error', { type: 'random_load_error', message: error.message });
-        }
+        handleLoadError(error, 'random');
     } finally {
         hideLoader();
     }
 }
 
-// Загрузка случайных GIF
+// Оптимизированная загрузка случайных GIF
 async function fetchRandomGIFs(count = CONFIG.gifsPerPage) {
     const cacheKey = `random_${count}_${Math.floor(Date.now() / 60000)}`;
-    
     const cached = cacheManager.get(cacheKey);
-    if (cached) {
-        console.log('Using cached random GIFs');
-        return cached;
-    }
+    if (cached) return cached;
 
     try {
-        const popularTags = [
-            'funny', 'cat', 'dog', 'meme', 'reaction', 'animal', 'cute', 'happy',
-            'lol', 'fail', 'win', 'celebration', 'sports', 'gaming', 'tv', 'movie'
-        ];
-        
+        const popularTags = ['funny', 'cat', 'dog', 'meme', 'reaction', 'animal', 'cute', 'happy'];
         const randomTag = popularTags[Math.floor(Math.random() * popularTags.length)];
         
         const response = await fetch(
-            `${CONFIG.apiBaseURL}/search?api_key=${apiKey}&q=${encodeURIComponent(randomTag)}&limit=${count * 2}&rating=g&lang=ru&bundle=messaging_non_clips`
+            `${CONFIG.apiBaseURL}/search?api_key=${apiKey}&q=${encodeURIComponent(randomTag)}&limit=${count * 2}&rating=g&lang=ru`
         );
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        let gifs = data.data;
-        
-        gifs = gifs.sort(() => Math.random() - 0.5);
-        const randomGIFs = gifs.slice(0, count);
+        const shuffledGIFs = data.data.sort(() => Math.random() - 0.5);
+        const randomGIFs = shuffledGIFs.slice(0, count);
         
         cacheManager.set(cacheKey, randomGIFs);
         return randomGIFs;
         
     } catch (error) {
-        console.error('Error in fetchRandomGIFs:', error);
-        return await fetchGIFs('trending', '', 0);
+        console.error('Error fetching random GIFs:', error);
+        // Fallback to trending GIFs
+        return fetchGIFs('trending', '', 0);
     }
 }
 
@@ -405,8 +350,7 @@ async function fetchRandomGIFs(count = CONFIG.gifsPerPage) {
 function updateActiveButton(activeType) {
     const buttons = {
         trending: elements.trendingBtn,
-        random: elements.randomBtn,
-        search: elements.trendingBtn // для поиска подсвечиваем trending кнопку
+        random: elements.randomBtn
     };
     
     Object.values(buttons).forEach(btn => {
@@ -423,33 +367,16 @@ function updateActiveButton(activeType) {
     }
 }
 
-// Поиск по категории
-function searchByCategory(category) {
-    const categories = {
-        cats: 'котики',
-        memes: 'мемы',
-        reactions: 'реакции',
-        animals: 'животные'
-    };
-    
-    elements.input.value = categories[category] || category;
-    handleSearch(new Event('submit'));
-    trackAnalytics('category_search', { category });
-}
-
-// Обработка поиска
+// Поиск
 async function handleSearch(e) {
     e.preventDefault();
     const query = elements.input.value.trim();
     if (!query) return;
 
     performSearch(query);
-    trackAnalytics('search', { query, type: 'manual' });
 }
 
-// Выполнение поиска
 async function performSearch(query, isAutoSearch = false) {
-    // Полный сброс состояния
     state.currentQuery = query;
     state.currentOffset = 0;
     state.currentPage = 1;
@@ -460,19 +387,18 @@ async function performSearch(query, isAutoSearch = false) {
         addToSearchHistory(query);
     }
     
-    // Показываем пагинацию для поиска
-    const pagination = document.querySelector('.pagination');
-    if (pagination) {
-        pagination.style.display = 'flex';
-    }
-    elements.loadMoreBtn.style.display = 'block';
+    showPagination();
     
-    await fetchAndDisplayGIFs('search', query);
-    updateActiveButton('search');
-    state.lastSearchType = 'search';
+    try {
+        await fetchAndDisplayGIFs('search', query);
+        updateActiveButton('search');
+        state.lastSearchType = 'search';
+    } catch (error) {
+        handleLoadError(error, 'search');
+    }
 }
 
-// Загрузка и отображение GIF
+// Основная функция загрузки и отображения GIF
 async function fetchAndDisplayGIFs(type, query = '') {
     if (state.isLoading) return;
     
@@ -488,24 +414,22 @@ async function fetchAndDisplayGIFs(type, query = '') {
         
         if (gifs.length === 0 && state.currentOffset === 0) {
             showError('Ничего не найдено. Попробуйте другой запрос.');
-            updateResultsInfo(0);
+            updateResultsInfo();
             return;
         }
         
         displayGIFs(gifs);
-        state.currentGIFs = [...state.currentGIFs, ...gifs];
+        state.currentGIFs.push(...gifs);
         state.currentOffset += gifs.length;
         
-        // Обновляем UI
         if (type !== 'random') {
             updatePagination();
             updateLoadMoreButton();
         }
-        updateResultsInfo(gifs.length);
+        updateResultsInfo();
         
     } catch (error) {
         if (error.name !== 'AbortError') {
-            console.error('Error fetching GIFs:', error);
             handleFetchError(error, type, query);
         }
     } finally {
@@ -513,15 +437,11 @@ async function fetchAndDisplayGIFs(type, query = '') {
     }
 }
 
-// Загрузка GIF с API
+// Оптимизированная загрузка GIF
 async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0) {
     const cacheKey = `${type}_${query}_${offset}`;
     const cached = cacheManager.get(cacheKey);
-    
-    if (cached) {
-        console.log('Using cached data for:', cacheKey);
-        return cached;
-    }
+    if (cached) return cached;
 
     try {
         const params = new URLSearchParams({
@@ -533,7 +453,7 @@ async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0)
             bundle: 'messaging_non_clips'
         });
 
-        let url = '';
+        let url;
         if (type === 'trending') {
             url = `${CONFIG.apiBaseURL}/trending?${params}`;
         } else if (type === 'random') {
@@ -543,10 +463,7 @@ async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0)
             url = `${CONFIG.apiBaseURL}/search?${params}`;
         }
 
-        console.log('Fetching from URL:', url); // Для отладки
-
-        const options = signal ? { signal } : {};
-        const response = await fetch(url, options);
+        const response = await fetch(url, { signal });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -554,22 +471,18 @@ async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0)
         
         const data = await response.json();
         
-        // Для trending API не возвращает total_count в pagination
-        // Устанавливаем разумное значение
+        // Устанавливаем общее количество
         if (type === 'trending') {
-            state.totalCount = 1000; // Примерное количество для trending
+            state.totalCount = 500; // Приблизительное количество для trending
         } else {
             state.totalCount = data.pagination?.total_count || 0;
         }
         
         cacheManager.set(cacheKey, data.data);
-        state.retryCount = 0;
-        
         return data.data;
         
     } catch (error) {
         if (retryCount < CONFIG.maxRetries && shouldRetry(error)) {
-            console.log(`Retrying request (${retryCount + 1}/${CONFIG.maxRetries})...`);
             await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay * (retryCount + 1)));
             return fetchGIFs(type, query, offset, signal, retryCount + 1);
         }
@@ -577,12 +490,12 @@ async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0)
     }
 }
 
-// Отображение GIF
+// Оптимизированное отображение GIF
 function displayGIFs(gifs) {
     const fragment = document.createDocumentFragment();
     
-    gifs.forEach((gif, index) => {
-        const gifCard = createGIFCard(gif, index);
+    gifs.forEach((gif) => {
+        const gifCard = createGIFCard(gif);
         fragment.appendChild(gifCard);
     });
     
@@ -590,15 +503,15 @@ function displayGIFs(gifs) {
 }
 
 // Создание карточки GIF
-function createGIFCard(gif, index) {
+function createGIFCard(gif) {
     const card = document.createElement('div');
     card.className = 'gif-card';
     card.dataset.gifId = gif.id;
     
     const img = document.createElement('img');
-    img.dataset.src = gif.images.fixed_height_small.url;
+    img.dataset.src = gif.images.fixed_height.webp || gif.images.fixed_height.url;
     img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDE2MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE2MCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNGMEYwRjAiLz48L3N2Zz4=';
-    img.alt = escapeHtml(gif.title) || 'Анимированное изображение GIF';
+    img.alt = gif.title || 'Анимированное изображение GIF';
     img.loading = 'lazy';
     img.className = 'gif lazy';
     img.width = 160;
@@ -610,25 +523,11 @@ function createGIFCard(gif, index) {
     
     const overlay = document.createElement('div');
     overlay.className = 'gif-overlay';
-    
-    const viewBtn = document.createElement('button');
-    viewBtn.className = 'gif-action-btn view-btn';
-    viewBtn.setAttribute('aria-label', 'Посмотреть GIF в полном размере');
-    viewBtn.textContent = '👁️';
-    
-    const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'gif-action-btn download-btn';
-    downloadBtn.setAttribute('aria-label', 'Скачать GIF');
-    downloadBtn.textContent = '⬇️';
-    
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'gif-action-btn copy-btn';
-    copyBtn.setAttribute('aria-label', 'Копировать ссылку на GIF');
-    copyBtn.textContent = '📋';
-    
-    overlay.appendChild(viewBtn);
-    overlay.appendChild(downloadBtn);
-    overlay.appendChild(copyBtn);
+    overlay.innerHTML = `
+        <button class="gif-action-btn view-btn" aria-label="Посмотреть GIF в полном размере">👁️</button>
+        <button class="gif-action-btn download-btn" aria-label="Скачать GIF">⬇️</button>
+        <button class="gif-action-btn copy-btn" aria-label="Копировать ссылку на GIF">📋</button>
+    `;
     
     card.appendChild(img);
     card.appendChild(overlay);
@@ -643,124 +542,87 @@ function handleGifAction(button, gif) {
     switch (action) {
         case 'view-btn':
             openModal(gif);
-            trackAnalytics('gif_view', { gifId: gif.id, source: 'overlay' });
             break;
         case 'download-btn':
             downloadGIF(gif);
-            trackAnalytics('gif_download', { gifId: gif.id });
             break;
         case 'copy-btn':
             copyGIFLink(gif);
-            trackAnalytics('gif_copy', { gifId: gif.id });
             break;
     }
 }
 
-// Открытие модального окна
+// Модальное окно
 function openModal(gif) {
+    if (!elements.modal) return;
+    
     elements.modal.style.display = 'flex';
     elements.modal.setAttribute('aria-hidden', 'false');
     elements.modalGif.src = gif.images.original.url;
     elements.modalGif.alt = gif.title || 'Анимированное изображение GIF';
     
     updateModalInfo(gif);
-    
-    // Сохраняем текущий GIF для действий в модальном окне
     state.currentModalGif = gif;
-    
-    // Обновляем ссылку скачивания в модальном окне
     updateDownloadLink(gif);
     
     elements.closeButton.focus();
-    
-    trackAnalytics('modal_open', { gifId: gif.id });
 }
 
-// Обновление информации в модальном окне
 function updateModalInfo(gif) {
-    // Безопасное обновление через textContent
-    elements.modalTitle.textContent = gif.title || 'Без названия';
+    if (elements.modalTitle) {
+        elements.modalTitle.textContent = gif.title || 'Без названия';
+    }
     
-    // Очищаем и пересоздаем элементы безопасно
-    elements.modalRating.innerHTML = '';
-    const ratingLabel = document.createElement('strong');
-    ratingLabel.textContent = 'Рейтинг: ';
-    const ratingValue = document.createElement('span');
-    ratingValue.textContent = gif.rating?.toUpperCase() || 'N/A';
-    elements.modalRating.appendChild(ratingLabel);
-    elements.modalRating.appendChild(ratingValue);
+    if (elements.modalRating) {
+        elements.modalRating.innerHTML = `<strong>Рейтинг:</strong> ${(gif.rating || 'N/A').toUpperCase()}`;
+    }
     
-    elements.modalSize.innerHTML = '';
-    const sizeLabel = document.createElement('strong');
-    sizeLabel.textContent = 'Размер: ';
-    const sizeValue = document.createElement('span');
-    sizeValue.textContent = `${Math.round(gif.images.original.size / 1024)} KB`;
-    elements.modalSize.appendChild(sizeLabel);
-    elements.modalSize.appendChild(sizeValue);
+    if (elements.modalSize) {
+        const sizeKB = Math.round((gif.images.original.size || 0) / 1024);
+        elements.modalSize.innerHTML = `<strong>Размер:</strong> ${sizeKB} KB`;
+    }
 }
 
-// Обновление ссылки скачивания в модальном окне
 function updateDownloadLink(gif) {
     if (!elements.downloadLink) return;
     
-    // Устанавливаем прямую ссылку на скачивание .gif файла
     elements.downloadLink.href = gif.images.original.url;
     elements.downloadLink.download = `giphy-${gif.id}.gif`;
     elements.downloadLink.setAttribute('aria-label', `Скачать GIF ${gif.title || ''}`);
 }
 
-// Обработка копирования ссылки из модального окна
-function handleCopyLink() {
-    if (state.currentModalGif) {
-        copyGIFLink(state.currentModalGif);
-    }
-}
-
-// Обработка поделиться из модального окна
-function handleShare() {
-    if (state.currentModalGif) {
-        shareGIF(state.currentModalGif);
-    }
-}
-
-// Скачивание GIF (из карточки)
+// Действия с GIF
 async function downloadGIF(gif) {
     try {
         showLoader();
         
-        // Создаем временную ссылку для скачивания
         const response = await fetch(gif.images.original.url);
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         
-        const filename = `giphy-${gif.id}.gif`;
-        const tempLink = document.createElement('a');
-        tempLink.href = url;
-        tempLink.download = filename;
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
-        URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `giphy-${gif.id}.gif`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         
+        URL.revokeObjectURL(url);
         showNotification('GIF успешно скачан!');
-        trackAnalytics('gif_download_success', { gifId: gif.id });
         
     } catch (error) {
         console.error('Download error:', error);
         showError('Ошибка при скачивании');
-        trackAnalytics('error', { type: 'download_error', message: error.message });
     } finally {
         hideLoader();
     }
 }
 
-// Копирование ссылки
 async function copyGIFLink(gif) {
     try {
         await navigator.clipboard.writeText(gif.images.original.url);
         showNotification('Ссылка скопирована в буфер обмена!');
     } catch (error) {
-        console.error('Copy error:', error);
         // Fallback для старых браузеров
         const textArea = document.createElement('textarea');
         textArea.value = gif.images.original.url;
@@ -769,26 +631,6 @@ async function copyGIFLink(gif) {
         document.execCommand('copy');
         document.body.removeChild(textArea);
         showNotification('Ссылка скопирована!');
-    }
-}
-
-// Поделиться GIF
-async function shareGIF(gif) {
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: gif.title || 'GIF из GIFS Поисковика',
-                text: 'Посмотри этот крутой GIF!',
-                url: gif.images.original.url
-            });
-            trackAnalytics('share_success', { gifId: gif.id });
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                copyGIFLink(gif);
-            }
-        }
-    } else {
-        copyGIFLink(gif);
     }
 }
 
@@ -813,11 +655,10 @@ function goToNextPage() {
 function updatePagination() {
     const totalPages = Math.ceil(state.totalCount / CONFIG.gifsPerPage);
     
-    elements.currentPage.textContent = state.currentPage;
-    elements.totalPages.textContent = totalPages;
-    
-    elements.prevPage.disabled = state.currentPage <= 1;
-    elements.nextPage.disabled = state.currentPage >= totalPages;
+    if (elements.currentPage) elements.currentPage.textContent = state.currentPage;
+    if (elements.totalPages) elements.totalPages.textContent = totalPages;
+    if (elements.prevPage) elements.prevPage.disabled = state.currentPage <= 1;
+    if (elements.nextPage) elements.nextPage.disabled = state.currentPage >= totalPages;
     
     const pagination = document.querySelector('.pagination');
     if (pagination) {
@@ -842,15 +683,11 @@ function loadMoreGIFs() {
     } else {
         fetchAndDisplayGIFs('trending');
     }
-    
-    trackAnalytics('load_more', { 
-        type: state.lastSearchType, 
-        currentCount: state.currentGIFs.length 
-    });
 }
 
-// Обновление кнопки "Загрузить еще"
 function updateLoadMoreButton() {
+    if (!elements.loadMoreBtn) return;
+    
     const hasMoreGIFs = state.currentGIFs.length < state.totalCount;
     elements.loadMoreBtn.style.display = hasMoreGIFs ? 'block' : 'none';
     
@@ -858,13 +695,13 @@ function updateLoadMoreButton() {
         const remaining = state.totalCount - state.currentGIFs.length;
         elements.loadMoreBtn.innerHTML = `
             <span class="load-more-icon">⬇️</span>
-            Загрузить еще (${remaining})
+            Загрузить еще (${Math.min(remaining, CONFIG.gifsPerPage)})
         `;
     }
 }
 
 // Обновление информации о результатах
-function updateResultsInfo(newGifsCount) {
+function updateResultsInfo() {
     if (!elements.resultsCount) return;
     
     if (state.lastSearchType === 'random') {
@@ -892,23 +729,13 @@ function renderSearchHistory() {
     if (!elements.searchHistory) return;
     
     if (state.searchHistory.length === 0) {
-        elements.searchHistory.textContent = '';
-        const noHistory = document.createElement('p');
-        noHistory.className = 'no-history';
-        noHistory.textContent = 'История поиска пуста';
-        elements.searchHistory.appendChild(noHistory);
+        elements.searchHistory.innerHTML = '<p class="no-history">История поиска пуста</p>';
         return;
     }
     
-    elements.searchHistory.textContent = '';
-    
-    state.searchHistory.forEach(query => {
-        const button = document.createElement('button');
-        button.className = 'history-item';
-        button.setAttribute('aria-label', `Искать ${escapeHtml(query)}`);
-        button.textContent = query;
-        elements.searchHistory.appendChild(button);
-    });
+    elements.searchHistory.innerHTML = state.searchHistory.map(query => 
+        `<button class="history-item" aria-label="Искать ${escapeHtml(query)}">${escapeHtml(query)}</button>`
+    ).join('');
 }
 
 // Тема
@@ -916,7 +743,6 @@ function toggleTheme() {
     state.isDarkTheme = !state.isDarkTheme;
     localStorage.setItem('gifDarkTheme', state.isDarkTheme);
     applyTheme();
-    trackAnalytics('theme_toggle', { theme: state.isDarkTheme ? 'dark' : 'light' });
 }
 
 function applyTheme() {
@@ -944,17 +770,24 @@ function debounce(func, wait) {
 
 function escapeHtml(unsafe) {
     if (typeof unsafe !== 'string') return unsafe;
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    const div = document.createElement('div');
+    div.textContent = unsafe;
+    return div.innerHTML;
 }
 
 function showNotification(message) {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
+    // Создаем уведомление если его нет
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed; top: 20px; right: 20px; background: #4CAF50; 
+            color: white; padding: 12px 20px; border-radius: 4px; 
+            z-index: 10000; display: none;
+        `;
+        document.body.appendChild(notification);
+    }
     
     notification.textContent = message;
     notification.style.display = 'block';
@@ -966,75 +799,52 @@ function showNotification(message) {
 
 function showError(message) {
     if (!elements.errorMessage) return;
-    
     elements.errorMessage.textContent = message;
     elements.errorMessage.style.display = 'block';
 }
 
 function hideError() {
     if (!elements.errorMessage) return;
-    
     elements.errorMessage.style.display = 'none';
 }
 
 function showLoader() {
     if (!elements.loader) return;
-    
     elements.loader.style.display = 'flex';
     state.isLoading = true;
 }
 
 function hideLoader() {
     if (!elements.loader) return;
-    
     elements.loader.style.display = 'none';
     state.isLoading = false;
-    
-    // Добавляем дополнительную проверку
-    setTimeout(() => {
-        if (elements.loader.style.display === 'flex') {
-            elements.loader.style.display = 'none';
-            state.isLoading = false;
-        }
-    }, 5000); // На всякий случай скрываем через 5 секунд
 }
 
 function closeModal() {
     if (!elements.modal) return;
-    
     elements.modal.style.display = 'none';
     elements.modal.setAttribute('aria-hidden', 'true');
     elements.modalGif.src = '';
     state.currentModalGif = null;
 }
 
-// Вспомогательные функции
-function shouldPreloadNextPage() {
-    if (state.currentGIFs.length >= state.totalCount) return false;
-    
-    const scrollPosition = elements.gifContainer.scrollTop;
-    const scrollHeight = elements.gifContainer.scrollHeight;
-    const clientHeight = elements.gifContainer.clientHeight;
-    
-    return (scrollPosition + clientHeight) / scrollHeight > CONFIG.preloadThreshold;
+function clearGifContainer() {
+    if (elements.gifContainer) {
+        elements.gifContainer.innerHTML = '';
+    }
 }
 
-function shouldRetry(error) {
-    return error.message.includes('Failed to fetch') || 
-           error.message.includes('Network') ||
-           error.message.includes('5');
+// Обработка ошибок
+function handleLoadError(error, type) {
+    if (error.name !== 'AbortError') {
+        console.error(`Error loading ${type} GIFs:`, error);
+        showError(getErrorMessage(error));
+    }
 }
 
 function handleFetchError(error, type, query) {
-    const errorMessage = getErrorMessage(error);
-    showError(errorMessage);
-    
-    trackAnalytics('error', { 
-        type: 'api_error', 
-        message: error.message,
-        searchType: type,
-        query: query
-    });
+    showError(getErrorMessage(error));
+    hideLoader();
 }
 
 function getErrorMessage(error) {
@@ -1044,105 +854,42 @@ function getErrorMessage(error) {
         return 'Сервис временно недоступен. Попробуйте позже.';
     } else if (error.message.includes('429')) {
         return 'Слишком много запросов. Подождите немного.';
+    } else if (error.message.includes('500')) {
+        return 'Ошибка сервера. Попробуйте позже.';
     } else {
         return 'Ошибка загрузки. Попробуйте еще раз.';
     }
 }
 
-async function preloadNextPage(type, query) {
-    const nextOffset = state.currentOffset + CONFIG.gifsPerPage;
-    const cacheKey = `${type}_${query}_${nextOffset}`;
-    
-    if (!cacheManager.get(cacheKey)) {
-        setTimeout(async () => {
-            try {
-                const gifs = await fetchGIFs(type, query, nextOffset);
-                cacheManager.set(cacheKey, gifs);
-            } catch (error) {
-                console.log('Preload failed:', error);
-            }
-        }, 1000);
-    }
+function shouldRetry(error) {
+    return error.message.includes('Failed to fetch') || 
+           error.message.includes('Network') ||
+           error.message.includes('5');
 }
 
-// Аналитика
-function trackAnalytics(event, data = {}) {
-    if (window.ym) {
-        ym(99425095, 'reachGoal', event, data);
-    }
+// Вспомогательные функции
+function searchByCategory(category) {
+    const categories = {
+        cats: 'котики',
+        memes: 'мемы',
+        reactions: 'реакции',
+        animals: 'животные'
+    };
     
-    if (window.gtag) {
-        gtag('event', event, data);
-    }
-    
-    console.log(`Analytics: ${event}`, data);
+    elements.input.value = categories[category] || category;
+    handleSearch(new Event('submit'));
 }
-
-// Обработка ошибок
-window.addEventListener('error', (e) => {
-    trackAnalytics('javascript_error', {
-        message: e.message,
-        filename: e.filename,
-        lineno: e.lineno,
-        colno: e.colno
-    });
-});
 
 // Инициализация при загрузке
-window.addEventListener('DOMContentLoaded', () => {
-    try {
-        initApp();
-    } catch (error) {
-        console.error('Failed to initialize app:', error);
-        showError('Не удалось загрузить приложение. Пожалуйста, обновите страницу.');
-    }
-});
+window.addEventListener('DOMContentLoaded', initApp);
 
 // Очистка
-function cleanup() {
-    if (state.imageObserver) {
-        state.imageObserver.disconnect();
-    }
-    
-    if (state.abortController) {
-        state.abortController.abort();
-    }
-}
-
-window.addEventListener('beforeunload', cleanup);
+window.addEventListener('beforeunload', () => {
+    if (state.imageObserver) state.imageObserver.disconnect();
+    if (state.abortController) state.abortController.abort();
+});
 
 // Export для отладки
 if (process.env.NODE_ENV === 'development') {
-    window.gifApp = {
-        state,
-        cacheManager,
-        elements,
-        CONFIG
-    };
-}
-
-function handleFetchError(error, type, query) {
-    let errorMessage = 'Ошибка загрузки. Попробуйте еще раз.';
-    
-    if (error.message.includes('Failed to fetch')) {
-        errorMessage = 'Проблемы с подключением к интернету. Проверьте соединение.';
-    } else if (error.message.includes('404')) {
-        errorMessage = 'Сервис временно недоступен. Попробуйте позже.';
-    } else if (error.message.includes('429')) {
-        errorMessage = 'Слишком много запросов. Подождите немного.';
-    } else if (error.message.includes('500')) {
-        errorMessage = 'Ошибка сервера. Попробуйте позже.';
-    }
-    
-    showError(errorMessage);
-    
-    // Всегда скрываем loader при ошибке
-    hideLoader();
-    
-    trackAnalytics('error', { 
-        type: 'api_error', 
-        message: error.message,
-        searchType: type,
-        query: query
-    });
+    window.gifApp = { state, cacheManager, elements, CONFIG };
 }
