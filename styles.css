@@ -634,6 +634,7 @@ header p {
   border-radius: var(--border-radius-xl);
   position: relative;
   max-width: min(90vw, 800px);
+  min-width: 500px;
   max-height: min(90vh, 800px);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
