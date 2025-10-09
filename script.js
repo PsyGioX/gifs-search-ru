@@ -245,12 +245,13 @@ async function loadTrendingGIFs() {
             state.abortController.abort();
         }
         
-        // Полный сброс состояния
+        // Полный сброс состояния для trending
         state.currentQuery = '';
         state.currentOffset = 0;
         state.currentPage = 1;
         state.currentGIFs = [];
         state.totalCount = 0;
+        state.lastSearchType = 'trending'; // Устанавливаем тип ДО загрузки
         
         elements.gifContainer.innerHTML = '';
         
@@ -267,7 +268,6 @@ async function loadTrendingGIFs() {
         
         await fetchAndDisplayGIFs('trending');
         
-        state.lastSearchType = 'trending';
         trackAnalytics('view_trending');
         
     } catch (error) {
@@ -293,12 +293,13 @@ async function loadRandomGIFs() {
             state.abortController.abort();
         }
         
-        // Полный сброс состояния
+        // Полный сброс состояния для random
         state.currentQuery = '';
         state.currentOffset = 0;
         state.currentPage = 1;
         state.currentGIFs = [];
         state.totalCount = 0;
+        state.lastSearchType = 'random'; // Устанавливаем тип ДО загрузки
         
         elements.gifContainer.innerHTML = '';
         
@@ -325,7 +326,6 @@ async function loadRandomGIFs() {
         state.totalCount = randomGIFs.length;
         updateResultsInfo(randomGIFs.length);
         
-        state.lastSearchType = 'random';
         trackAnalytics('view_random');
         
     } catch (error) {
@@ -384,7 +384,8 @@ async function fetchRandomGIFs(count = CONFIG.gifsPerPage) {
 function updateActiveButton(activeType) {
     const buttons = {
         trending: elements.trendingBtn,
-        random: elements.randomBtn
+        random: elements.randomBtn,
+        search: elements.trendingBtn // для поиска подсвечиваем trending кнопку
     };
     
     Object.values(buttons).forEach(btn => {
@@ -463,7 +464,13 @@ async function fetchAndDisplayGIFs(type, query = '') {
         }
         state.abortController = new AbortController();
         
-        const gifs = await fetchGIFs(type, query, state.currentOffset, state.abortController.signal);
+        // Для trending и search используем обычный API вызов
+        let gifs;
+        if (type === 'random') {
+            gifs = await fetchRandomGIFs();
+        } else {
+            gifs = await fetchGIFs(type, query, state.currentOffset, state.abortController.signal);
+        }
         
         if (state.currentOffset === 0) {
             elements.gifContainer.innerHTML = '';
@@ -478,15 +485,18 @@ async function fetchAndDisplayGIFs(type, query = '') {
         
         displayGIFs(gifs);
         state.currentGIFs = [...state.currentGIFs, ...gifs];
-        state.currentOffset += gifs.length;
         
+        // Обновляем offset только для trending/search (не для random)
         if (type !== 'random') {
+            state.currentOffset += gifs.length;
             updatePagination();
             updateLoadMoreButton();
             updateResultsInfo(gifs.length);
+        } else {
+            updateResultsInfo(gifs.length);
         }
         
-        if (shouldPreloadNextPage()) {
+        if (shouldPreloadNextPage() && type !== 'random') {
             preloadNextPage(type, query);
         }
         
