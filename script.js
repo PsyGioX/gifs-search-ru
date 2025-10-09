@@ -35,7 +35,7 @@ const CONFIG = {
     gifsPerPage: 24,
     maxSearchHistory: 8,
     apiBaseURL: 'https://api.giphy.com/v1/gifs',
-    cacheTTL: 10 * 60 * 1000, // 10 минут
+    cacheTTL: 10 * 60 * 1000,
     maxCacheSize: 100,
     preloadThreshold: 0.8,
     debounceDelay: 300,
@@ -57,7 +57,8 @@ const state = {
     lastSearchType: 'trending',
     abortController: null,
     retryCount: 0,
-    imageObserver: null
+    imageObserver: null,
+    currentModalGif: null
 };
 
 // Кэширование
@@ -232,7 +233,55 @@ function setupAccessibility() {
     });
 }
 
-// Функция для кнопки "Случайные"
+// Загрузка популярных GIF
+async function loadTrendingGIFs() {
+    if (state.isLoading) return;
+    
+    try {
+        showLoader();
+        hideError();
+        
+        if (state.abortController) {
+            state.abortController.abort();
+        }
+        
+        // Полный сброс состояния
+        state.currentQuery = '';
+        state.currentOffset = 0;
+        state.currentPage = 1;
+        state.currentGIFs = [];
+        state.totalCount = 0;
+        
+        elements.gifContainer.innerHTML = '';
+        
+        // Обновляем UI до загрузки
+        elements.sectionTitle.textContent = '🔥 Популярные GIF';
+        updateActiveButton('trending');
+        
+        // Показываем пагинацию
+        const pagination = document.querySelector('.pagination');
+        if (pagination) {
+            pagination.style.display = 'flex';
+        }
+        elements.loadMoreBtn.style.display = 'block';
+        
+        await fetchAndDisplayGIFs('trending');
+        
+        state.lastSearchType = 'trending';
+        trackAnalytics('view_trending');
+        
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            console.error('Error loading trending GIFs:', error);
+            showError('Ошибка загрузки популярных GIF. Проверьте подключение к интернету.');
+            trackAnalytics('error', { type: 'trending_load_error', message: error.message });
+        }
+    } finally {
+        hideLoader();
+    }
+}
+
+// Загрузка случайных GIF
 async function loadRandomGIFs() {
     if (state.isLoading) return;
     
@@ -244,12 +293,25 @@ async function loadRandomGIFs() {
             state.abortController.abort();
         }
         
+        // Полный сброс состояния
         state.currentQuery = '';
         state.currentOffset = 0;
         state.currentPage = 1;
+        state.currentGIFs = [];
+        state.totalCount = 0;
         
         elements.gifContainer.innerHTML = '';
-        state.currentGIFs = [];
+        
+        // Обновляем UI до загрузки
+        elements.sectionTitle.textContent = '🎲 Случайные GIF';
+        updateActiveButton('random');
+        
+        // Скрываем пагинацию для случайных GIF
+        const pagination = document.querySelector('.pagination');
+        if (pagination) {
+            pagination.style.display = 'none';
+        }
+        elements.loadMoreBtn.style.display = 'none';
         
         const randomGIFs = await fetchRandomGIFs();
         
@@ -261,18 +323,7 @@ async function loadRandomGIFs() {
         displayGIFs(randomGIFs);
         state.currentGIFs = randomGIFs;
         state.totalCount = randomGIFs.length;
-        
-        elements.sectionTitle.textContent = '🎲 Случайные GIF';
-        updateActiveButton('random');
-        updatePagination();
-        updateLoadMoreButton();
         updateResultsInfo(randomGIFs.length);
-        
-        const pagination = document.querySelector('.pagination');
-        if (pagination) {
-            pagination.style.display = 'none';
-        }
-        elements.loadMoreBtn.style.display = 'none';
         
         state.lastSearchType = 'random';
         trackAnalytics('view_random');
@@ -325,7 +376,6 @@ async function fetchRandomGIFs(count = CONFIG.gifsPerPage) {
         
     } catch (error) {
         console.error('Error in fetchRandomGIFs:', error);
-        console.log('Fallback to trending GIFs');
         return await fetchGIFs('trending', '', 0);
     }
 }
@@ -354,9 +404,9 @@ function updateActiveButton(activeType) {
 // Поиск по категории
 function searchByCategory(category) {
     const categories = {
-        cats: 'милые котики',
-        memes: 'смешные мемы',
-        reactions: 'реакции эмоции',
+        cats: 'котики',
+        memes: 'мемы',
+        reactions: 'реакции',
         animals: 'животные'
     };
     
@@ -377,29 +427,27 @@ async function handleSearch(e) {
 
 // Выполнение поиска
 async function performSearch(query, isAutoSearch = false) {
+    // Полный сброс состояния
     state.currentQuery = query;
     state.currentOffset = 0;
     state.currentPage = 1;
+    state.currentGIFs = [];
+    state.totalCount = 0;
     
     if (!isAutoSearch) {
         addToSearchHistory(query);
     }
     
+    // Показываем пагинацию для поиска
+    const pagination = document.querySelector('.pagination');
+    if (pagination) {
+        pagination.style.display = 'flex';
+    }
+    elements.loadMoreBtn.style.display = 'block';
+    
     await fetchAndDisplayGIFs('search', query);
-    elements.trendingBtn.classList.remove('active');
+    updateActiveButton('search');
     state.lastSearchType = 'search';
-}
-
-// Загрузка популярных GIF
-async function loadTrendingGIFs() {
-    state.currentQuery = '';
-    state.currentOffset = 0;
-    state.currentPage = 1;
-    elements.sectionTitle.textContent = '🔥 Популярные GIF';
-    await fetchAndDisplayGIFs('trending');
-    elements.trendingBtn.classList.add('active');
-    state.lastSearchType = 'trending';
-    trackAnalytics('view_trending');
 }
 
 // Загрузка и отображение GIF
@@ -432,9 +480,11 @@ async function fetchAndDisplayGIFs(type, query = '') {
         state.currentGIFs = [...state.currentGIFs, ...gifs];
         state.currentOffset += gifs.length;
         
-        updatePagination();
-        updateLoadMoreButton();
-        updateResultsInfo(gifs.length);
+        if (type !== 'random') {
+            updatePagination();
+            updateLoadMoreButton();
+            updateResultsInfo(gifs.length);
+        }
         
         if (shouldPreloadNextPage()) {
             preloadNextPage(type, query);
@@ -526,7 +576,7 @@ function createGIFCard(gif, index) {
     const img = document.createElement('img');
     img.dataset.src = gif.images.fixed_height_small.url;
     img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDE2MCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE2MCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNGMEYwRjAiLz48L3N2Zz4=';
-    img.alt = gif.title || 'Анимированное изображение GIF';
+    img.alt = escapeHtml(gif.title) || 'Анимированное изображение GIF';
     img.loading = 'lazy';
     img.className = 'gif lazy';
     img.width = 160;
@@ -538,17 +588,25 @@ function createGIFCard(gif, index) {
     
     const overlay = document.createElement('div');
     overlay.className = 'gif-overlay';
-    overlay.innerHTML = `
-        <button class="gif-action-btn view-btn" aria-label="Посмотреть GIF в полном размере">
-            👁️
-        </button>
-        <button class="gif-action-btn download-btn" aria-label="Скачать GIF">
-            ⬇️
-        </button>
-        <button class="gif-action-btn copy-btn" aria-label="Копировать ссылку на GIF">
-            📋
-        </button>
-    `;
+    
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'gif-action-btn view-btn';
+    viewBtn.setAttribute('aria-label', 'Посмотреть GIF в полном размере');
+    viewBtn.textContent = '👁️';
+    
+    const downloadBtn = document.createElement('button');
+    downloadBtn.className = 'gif-action-btn download-btn';
+    downloadBtn.setAttribute('aria-label', 'Скачать GIF');
+    downloadBtn.textContent = '⬇️';
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'gif-action-btn copy-btn';
+    copyBtn.setAttribute('aria-label', 'Копировать ссылку на GIF');
+    copyBtn.textContent = '📋';
+    
+    overlay.appendChild(viewBtn);
+    overlay.appendChild(downloadBtn);
+    overlay.appendChild(copyBtn);
     
     card.appendChild(img);
     card.appendChild(overlay);
@@ -585,7 +643,12 @@ function openModal(gif) {
     
     updateModalInfo(gif);
     
-    elements.modal.currentGif = gif;
+    // Сохраняем текущий GIF для действий в модальном окне
+    state.currentModalGif = gif;
+    
+    // Обновляем ссылку скачивания в модальном окне
+    updateDownloadLink(gif);
+    
     elements.closeButton.focus();
     
     trackAnalytics('modal_open', { gifId: gif.id });
@@ -593,29 +656,57 @@ function openModal(gif) {
 
 // Обновление информации в модальном окне
 function updateModalInfo(gif) {
+    // Безопасное обновление через textContent
     elements.modalTitle.textContent = gif.title || 'Без названия';
-    elements.modalRating.innerHTML = `<strong>Рейтинг:</strong> <span>${gif.rating?.toUpperCase() || 'N/A'}</span>`;
-    elements.modalSize.innerHTML = `<strong>Размер:</strong> <span>${Math.round(gif.images.original.size / 1024)} KB</span>`;
+    
+    // Очищаем и пересоздаем элементы безопасно
+    elements.modalRating.innerHTML = '';
+    const ratingLabel = document.createElement('strong');
+    ratingLabel.textContent = 'Рейтинг: ';
+    const ratingValue = document.createElement('span');
+    ratingValue.textContent = gif.rating?.toUpperCase() || 'N/A';
+    elements.modalRating.appendChild(ratingLabel);
+    elements.modalRating.appendChild(ratingValue);
+    
+    elements.modalSize.innerHTML = '';
+    const sizeLabel = document.createElement('strong');
+    sizeLabel.textContent = 'Размер: ';
+    const sizeValue = document.createElement('span');
+    sizeValue.textContent = `${Math.round(gif.images.original.size / 1024)} KB`;
+    elements.modalSize.appendChild(sizeLabel);
+    elements.modalSize.appendChild(sizeValue);
 }
 
-// Обработка копирования ссылки
+// Обновление ссылки скачивания в модальном окне
+function updateDownloadLink(gif) {
+    if (!elements.downloadLink) return;
+    
+    // Устанавливаем прямую ссылку на скачивание .gif файла
+    elements.downloadLink.href = gif.images.original.url;
+    elements.downloadLink.download = `giphy-${gif.id}.gif`;
+    elements.downloadLink.setAttribute('aria-label', `Скачать GIF ${gif.title || ''}`);
+}
+
+// Обработка копирования ссылки из модального окна
 function handleCopyLink() {
-    if (elements.modal.currentGif) {
-        copyGIFLink(elements.modal.currentGif);
+    if (state.currentModalGif) {
+        copyGIFLink(state.currentModalGif);
     }
 }
 
-// Обработка поделиться
+// Обработка поделиться из модального окна
 function handleShare() {
-    if (elements.modal.currentGif) {
-        shareGIF(elements.modal.currentGif);
+    if (state.currentModalGif) {
+        shareGIF(state.currentModalGif);
     }
 }
 
-// Скачивание GIF
+// Скачивание GIF (из карточки)
 async function downloadGIF(gif) {
     try {
         showLoader();
+        
+        // Создаем временную ссылку для скачивания
         const response = await fetch(gif.images.original.url);
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
@@ -630,6 +721,8 @@ async function downloadGIF(gif) {
         URL.revokeObjectURL(url);
         
         showNotification('GIF успешно скачан!');
+        trackAnalytics('gif_download_success', { gifId: gif.id });
+        
     } catch (error) {
         console.error('Download error:', error);
         showError('Ошибка при скачивании');
@@ -646,6 +739,7 @@ async function copyGIFLink(gif) {
         showNotification('Ссылка скопирована в буфер обмена!');
     } catch (error) {
         console.error('Copy error:', error);
+        // Fallback для старых браузеров
         const textArea = document.createElement('textarea');
         textArea.value = gif.images.original.url;
         document.body.appendChild(textArea);
@@ -776,16 +870,23 @@ function renderSearchHistory() {
     if (!elements.searchHistory) return;
     
     if (state.searchHistory.length === 0) {
-        elements.searchHistory.innerHTML = '<p class="no-history">История поиска пуста</p>';
+        elements.searchHistory.textContent = '';
+        const noHistory = document.createElement('p');
+        noHistory.className = 'no-history';
+        noHistory.textContent = 'История поиска пуста';
+        elements.searchHistory.appendChild(noHistory);
         return;
     }
     
-    elements.searchHistory.innerHTML = state.searchHistory
-        .map(query => `
-            <button class="history-item" aria-label="Искать ${query}">
-                ${query}
-            </button>
-        `).join('');
+    elements.searchHistory.textContent = '';
+    
+    state.searchHistory.forEach(query => {
+        const button = document.createElement('button');
+        button.className = 'history-item';
+        button.setAttribute('aria-label', `Искать ${escapeHtml(query)}`);
+        button.textContent = query;
+        elements.searchHistory.appendChild(button);
+    });
 }
 
 // Тема
@@ -819,15 +920,14 @@ function debounce(func, wait) {
     };
 }
 
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return unsafe;
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function showNotification(message) {
@@ -875,7 +975,7 @@ function closeModal() {
     elements.modal.style.display = 'none';
     elements.modal.setAttribute('aria-hidden', 'true');
     elements.modalGif.src = '';
-    delete elements.modal.currentGif;
+    state.currentModalGif = null;
 }
 
 // Вспомогательные функции
