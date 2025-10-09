@@ -108,6 +108,7 @@ body {
 
 /* FIXED: Main App Container with прокрутка и flex layout */
 .app {
+  margin-top: 50px;
   position: relative;
   background: var(--background-color);
   border-radius: var(--border-radius-xl);
@@ -117,7 +118,7 @@ body {
   justify-content: flex-start;
   gap: 20px;
   width: min(90%, 1400px);
-  height: min(95vh, 900px);
+  height: max-content;
   text-align: center;
   padding: clamp(20px, 3vw, 40px);
   box-shadow: var(--shadow-lg);
