@@ -106,25 +106,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Skip Link for Accessibility */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: var(--primary-color);
-  color: white;
-  padding: 8px 16px;
-  border-radius: var(--border-radius-sm);
-  text-decoration: none;
-  font-weight: 600;
-  z-index: 10000;
-  transition: var(--transition-fast);
-}
-
-.skip-link:focus {
-  top: 6px;
-}
-
 /* FIXED: Main App Container with прокрутка и flex layout */
 .app {
   position: relative;
@@ -140,7 +121,7 @@ body {
   text-align: center;
   padding: clamp(20px, 3vw, 40px);
   box-shadow: var(--shadow-lg);
-  overflow: hidden; /* Скрываем основной overflow */
+  overflow: auto;
   transition: var(--transition-normal);
   border: 1px solid var(--border-light);
 }
