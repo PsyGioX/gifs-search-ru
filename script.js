@@ -408,41 +408,8 @@ function handleGifAction(button, gif) {
 function openModal(gif) {
     elements.modal.style.display = 'flex';
     elements.modal.setAttribute('aria-hidden', 'false');
-    
-    // Очищаем предыдущее изображение и показываем загрузчик
-    elements.modalGif.src = '';
-    elements.modalGif.alt = '';
-    showModalLoader();
-    
-    // Создаем новое изображение для предзагрузки
-    const img = new Image();
-    img.onload = function() {
-        // Устанавливаем загруженное изображение и скрываем загрузчик
-        elements.modalGif.src = gif.images.original.url;
-        elements.modalGif.alt = gif.title || 'Анимированное изображение GIF';
-        hideModalLoader();
-        
-        // Добавляем обработчик ошибки на случай проблем с отображением
-        elements.modalGif.onerror = function() {
-            console.error('Failed to load GIF in modal');
-            hideModalLoader();
-            showError('Не удалось загрузить GIF');
-            // Показываем placeholder или альтернативное изображение
-            elements.modalGif.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjM1ZW0iPkdJRiBOb3QgRm91bmQ8L3RleHQ+PC9zdmc+';
-        };
-    };
-    
-    img.onerror = function() {
-        console.error('Failed to preload GIF');
-        hideModalLoader();
-        showError('Ошибка загрузки GIF');
-        // Альтернативный вариант - использовать fixed_height url как fallback
-        elements.modalGif.src = gif.images.fixed_height.url;
-        elements.modalGif.alt = gif.title || 'Анимированное изображение GIF';
-    };
-    
-    // Начинаем загрузку
-    img.src = gif.images.original.url;
+    elements.modalGif.src = gif.images.original.url;
+    elements.modalGif.alt = gif.title || 'Анимированное изображение GIF';
     
     updateModalInfo(gif);
     
@@ -453,28 +420,6 @@ function openModal(gif) {
     elements.closeButton.focus();
     
     trackAnalytics('modal_open', { gifId: gif.id });
-}
-
-// Показать загрузчик в модальном окне
-function showModalLoader() {
-    if (!elements.modalLoader) {
-        // Создаем элемент загрузчика если его нет
-        const loader = document.createElement('div');
-        loader.className = 'modal-loader';
-        loader.innerHTML = '<div class="spinner"></div><p>Загрузка GIF...</p>';
-        elements.modalContent.appendChild(loader);
-        elements.modalLoader = loader;
-    }
-    elements.modalLoader.style.display = 'flex';
-    elements.modalGif.style.display = 'none';
-}
-
-// Скрыть загрузчик в модальном окне
-function hideModalLoader() {
-    if (elements.modalLoader) {
-        elements.modalLoader.style.display = 'none';
-    }
-    elements.modalGif.style.display = 'block';
 }
 
 // Обновление информации в модальном окне
@@ -503,16 +448,7 @@ async function downloadGIF(gif) {
     try {
         showLoader();
         const response = await fetch(gif.images.original.url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const blob = await response.blob();
-        
-        // Проверяем, что это действительно GIF
-        if (blob.type !== 'image/gif') {
-            throw new Error('Invalid file type');
-        }
-        
         const url = URL.createObjectURL(blob);
         
         const filename = `giphy-${gif.id}.gif`;
@@ -570,49 +506,6 @@ async function shareGIF(gif) {
     } else {
         copyGIFLink(gif);
     }
-}
-
-// Добавьте этот CSS для загрузчика модального окна
-const modalLoaderStyles = `
-.modal-loader {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    z-index: 10;
-}
-
-.modal-loader .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.modal-loader p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-`;
-
-// Добавление стилей в документ
-if (!document.querySelector('#modal-loader-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'modal-loader-styles';
-    styleSheet.textContent = modalLoaderStyles;
-    document.head.appendChild(styleSheet);
 }
 
 // Пагинация
