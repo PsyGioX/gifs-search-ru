@@ -115,6 +115,33 @@ function initApp() {
     trackAnalytics('page_view', { page: 'home' });
 }
 
+// Сброс состояния
+function resetState() {
+    state.currentQuery = '';
+    state.currentOffset = 0;
+    state.currentPage = 1;
+    state.currentGIFs = [];
+    state.totalCount = 0;
+    state.retryCount = 0;
+}
+
+// Показать/скрыть пагинацию
+function showPagination() {
+    const pagination = document.querySelector('.pagination');
+    if (pagination) {
+        pagination.style.display = 'flex';
+    }
+    elements.loadMoreBtn.style.display = 'block';
+}
+
+function hidePagination() {
+    const pagination = document.querySelector('.pagination');
+    if (pagination) {
+        pagination.style.display = 'none';
+    }
+    elements.loadMoreBtn.style.display = 'none';
+}
+
 // Настройка Intersection Observer
 function setupImageObserver() {
     state.imageObserver = new IntersectionObserver((entries) => {
@@ -241,31 +268,25 @@ async function loadTrendingGIFs() {
         showLoader();
         hideError();
         
+        // Отменяем предыдущие запросы
         if (state.abortController) {
             state.abortController.abort();
         }
         
-        // Полный сброс состояния для trending
-        state.currentQuery = '';
-        state.currentOffset = 0;
-        state.currentPage = 1;
-        state.currentGIFs = [];
-        state.totalCount = 0;
-        state.lastSearchType = 'trending'; // Устанавливаем тип ДО загрузки
+        // Сбрасываем состояние
+        resetState();
+        state.lastSearchType = 'trending';
         
         elements.gifContainer.innerHTML = '';
         
-        // Обновляем UI до загрузки
+        // Обновляем UI
         elements.sectionTitle.textContent = '🔥 Популярные GIF';
         updateActiveButton('trending');
         
         // Показываем пагинацию
-        const pagination = document.querySelector('.pagination');
-        if (pagination) {
-            pagination.style.display = 'flex';
-        }
-        elements.loadMoreBtn.style.display = 'block';
+        showPagination();
         
+        // Загружаем GIF
         await fetchAndDisplayGIFs('trending');
         
         trackAnalytics('view_trending');
@@ -457,25 +478,13 @@ async function fetchAndDisplayGIFs(type, query = '') {
     
     try {
         showLoader();
-        hideError();
         
         if (state.abortController) {
             state.abortController.abort();
         }
         state.abortController = new AbortController();
         
-        // Для trending и search используем обычный API вызов
-        let gifs;
-        if (type === 'random') {
-            gifs = await fetchRandomGIFs();
-        } else {
-            gifs = await fetchGIFs(type, query, state.currentOffset, state.abortController.signal);
-        }
-        
-        if (state.currentOffset === 0) {
-            elements.gifContainer.innerHTML = '';
-            state.currentGIFs = [];
-        }
+        const gifs = await fetchGIFs(type, query, state.currentOffset, state.abortController.signal);
         
         if (gifs.length === 0 && state.currentOffset === 0) {
             showError('Ничего не найдено. Попробуйте другой запрос.');
@@ -485,20 +494,14 @@ async function fetchAndDisplayGIFs(type, query = '') {
         
         displayGIFs(gifs);
         state.currentGIFs = [...state.currentGIFs, ...gifs];
+        state.currentOffset += gifs.length;
         
-        // Обновляем offset только для trending/search (не для random)
+        // Обновляем UI
         if (type !== 'random') {
-            state.currentOffset += gifs.length;
             updatePagination();
             updateLoadMoreButton();
-            updateResultsInfo(gifs.length);
-        } else {
-            updateResultsInfo(gifs.length);
         }
-        
-        if (shouldPreloadNextPage() && type !== 'random') {
-            preloadNextPage(type, query);
-        }
+        updateResultsInfo(gifs.length);
         
     } catch (error) {
         if (error.name !== 'AbortError') {
@@ -540,6 +543,8 @@ async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0)
             url = `${CONFIG.apiBaseURL}/search?${params}`;
         }
 
+        console.log('Fetching from URL:', url); // Для отладки
+
         const options = signal ? { signal } : {};
         const response = await fetch(url, options);
         
@@ -548,7 +553,14 @@ async function fetchGIFs(type, query, offset = 0, signal = null, retryCount = 0)
         }
         
         const data = await response.json();
-        state.totalCount = data.pagination.total_count;
+        
+        // Для trending API не возвращает total_count в pagination
+        // Устанавливаем разумное значение
+        if (type === 'trending') {
+            state.totalCount = 1000; // Примерное количество для trending
+        } else {
+            state.totalCount = data.pagination?.total_count || 0;
+        }
         
         cacheManager.set(cacheKey, data.data);
         state.retryCount = 0;
@@ -977,6 +989,14 @@ function hideLoader() {
     
     elements.loader.style.display = 'none';
     state.isLoading = false;
+    
+    // Добавляем дополнительную проверку
+    setTimeout(() => {
+        if (elements.loader.style.display === 'flex') {
+            elements.loader.style.display = 'none';
+            state.isLoading = false;
+        }
+    }, 5000); // На всякий случай скрываем через 5 секунд
 }
 
 function closeModal() {
@@ -1099,4 +1119,30 @@ if (process.env.NODE_ENV === 'development') {
         elements,
         CONFIG
     };
+}
+
+function handleFetchError(error, type, query) {
+    let errorMessage = 'Ошибка загрузки. Попробуйте еще раз.';
+    
+    if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Проблемы с подключением к интернету. Проверьте соединение.';
+    } else if (error.message.includes('404')) {
+        errorMessage = 'Сервис временно недоступен. Попробуйте позже.';
+    } else if (error.message.includes('429')) {
+        errorMessage = 'Слишком много запросов. Подождите немного.';
+    } else if (error.message.includes('500')) {
+        errorMessage = 'Ошибка сервера. Попробуйте позже.';
+    }
+    
+    showError(errorMessage);
+    
+    // Всегда скрываем loader при ошибке
+    hideLoader();
+    
+    trackAnalytics('error', { 
+        type: 'api_error', 
+        message: error.message,
+        searchType: type,
+        query: query
+    });
 }
