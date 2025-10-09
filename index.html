@@ -42,6 +42,18 @@
       <button type="submit">🔍 Поиск</button>
     </form>
 
+    <div class="controls">
+      <div class="control-group">
+        <button id="trending-btn">🔥 Популярные</button>
+        <button id="theme-toggle">🌙 Тема</button>
+      </div>
+      <button id="load-more" class="load-more" style="display: none;">Загрузить еще</button>
+    </div>
+
+    <div id="search-history" class="search-history"></div>
+
+    <div id="error-message" class="error-message"></div>
+
     <h2 id="section-title">Популярные GIFs</h2>
     <div id="gif-container" class="gif-container"></div>
   </div>
@@ -50,14 +62,21 @@
   <div id="modal" class="modal">
     <span class="close-button">&times;</span>
     <div class="modal-content">
-      <img id="modal-gif" src="" alt="GIF">
-      <a id="download-link" href="" download>Скачать GIF</a>
+      <img id="modal-gif" class="modal-gif" src="" alt="GIF">
+      <div class="gif-info">
+        <h3 id="modal-title">GIF</h3>
+        <p id="modal-rating">Рейтинг: N/A</p>
+        <p id="modal-size">Размер: N/A</p>
+        <div class="modal-actions">
+          <a id="download-link" href="" download class="btn primary">Скачать GIF</a>
+          <button id="copy-link" class="btn secondary">Копировать ссылку</button>
+          <button id="share-btn" class="btn secondary">Поделиться</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="script.js"></script>
-
-  <!-- Yandex -->
 
   <!-- Yandex.Metrika counter -->
   <script type="text/javascript">
