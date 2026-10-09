@@ -1,333 +1,291 @@
 <!DOCTYPE html>
-<html lang="ru" itemscope itemtype="https://schema.org/WebApplication">
+<!--
+  GIFS Поисковик — index.html
+  Copyright (c) 2025–2026 PsyGioX <https://psygiox-dev.vercel.app/>
+  Licensed under the MIT License (see LICENSE)
+  Source: https://github.com/PsyGioX/gifs-search-ru
+  Demo:   https://gifs-search-ru.netlify.app/
+  Icons:  Bootstrap Icons (MIT, © The Bootstrap Authors) — https://icons.getbootstrap.com/
+-->
+<html lang="ru" data-theme="dark">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- SEO Meta Tags -->
-  <title>GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы | Бесплатные GIF анимации</title>
-  <meta name="description" content="🚀 Лучший поисковик GIF анимаций! Тысячи смешных мемов, гифок с котиками, реакций и видео со звуком. Скачивайте бесплатно, делитесь с друзьями. Быстрый поиск по огромной коллекции GIF изображений.">
-  <meta name="keywords" content="gif, гифки, мемы, анимации, скачать гифки, поиск гифок, смешные гифки, гифки с котиками, реакции, стикеры, видео мемы">
-  <meta name="author" content="GIFS Поисковик">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+
+  <!-- SEO (текст обновляется скриптом под выбранный язык) -->
+  <title>GIFS Поисковик — гифки, мемы и стикеры бесплатно</title>
+  <meta name="description" content="Ищи гифки, мемы и реакции, смотри превью и качай бесплатно. Котики, приколы, эмоции — всё в одном месте.">
+  <meta name="keywords" content="gif, гифки, мемы, анимации, скачать гифки, поиск гифок, gifs, memes, gify, memy">
+  <meta name="author" content="PsyGioX">
+  <meta name="copyright" content="PsyGioX, MIT License">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-  
-  <!-- Open Graph / Social Media -->
+  <link rel="canonical" href="https://gifs-search-ru.netlify.app/">
+
+  <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="GIFS Поисковик">
-  <meta property="og:title" content="GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы">
-  <meta property="og:description" content="🚀 Находите и скачивайте лучшие GIF анимации! Огромная коллекция мемов, реакций и смешных гифок с котиками.">
-  <meta property="og:image" content="/resources/preview.jpg">
+  <meta property="og:title" content="GIFS Поисковик — гифки, мемы и стикеры бесплатно">
+  <meta property="og:description" content="Ищи гифки, мемы и реакции, смотри превью и качай бесплатно. Котики, приколы, эмоции — всё в одном месте.">
+  <meta property="og:image" content="https://gifs-search-ru.netlify.app/resources/prrview.jpg">
   <meta property="og:url" content="https://gifs-search-ru.netlify.app/">
   <meta property="og:locale" content="ru_RU">
-  
-  <!-- Twitter Card -->
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale:alternate" content="pl_PL">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="GIFS Поисковик — Веселые гифки и мемы">
-  <meta name="twitter:description" content="Находите и скачивайте лучшие GIF анимации бесплатно">
-  <meta name="twitter:image" content="/resources/preview.jpg">
-  
-  <!-- Schema.org Structured Data -->
+  <meta name="twitter:creator" content="@PsyGioX">
+  <meta name="twitter:title" content="GIFS Поисковик — гифки, мемы и стикеры бесплатно">
+  <meta name="twitter:description" content="Ищи гифки, мемы и реакции, смотри превью и качай бесплатно.">
+  <meta name="twitter:image" content="https://gifs-search-ru.netlify.app/resources/prrview.jpg">
+
+  <!-- Schema.org -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "GIFS Поисковик",
-    "description": "Поисковик GIF анимаций, мемов и стикеров с возможностью скачивания",
     "url": "https://gifs-search-ru.netlify.app/",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
-    "permissions": "browser",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
+    "inLanguage": ["ru", "en", "pl"],
+    "license": "https://opensource.org/licenses/MIT",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "author": {
-      "@type": "Organization",
-      "name": "GIFS Поисковик"
-    }
+      "@type": "Person",
+      "name": "PsyGioX",
+      "url": "https://psygiox-dev.vercel.app/",
+      "sameAs": ["https://github.com/PsyGioX"]
+    },
+    "copyrightHolder": { "@type": "Person", "name": "PsyGioX" },
+    "copyrightYear": 2026
   }
   </script>
-  
-  <!-- Favicon -->
-  <link rel="shortcut icon" href="/favicon/favicon.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+
+  <!-- Favicon / PWA -->
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="manifest" href="/favicon/site.webmanifest">
-  <meta name="theme-color" content="#00BC5E">
-  <meta name="msapplication-TileColor" content="#00BC5E">
-  
-  <!-- Preload Critical Resources -->
-  <link rel="preload" href="/styles.css" as="style">
-  <link rel="preload" href="script.js" as="script">
-  
-  <!-- Preconnect to External Domains -->
-  <link rel="preconnect" href="https://api.giphy.com">
-  <link rel="dns-prefetch" href="https://api.giphy.com">
-  
-  <!-- Verification -->
+  <meta name="theme-color" content="#070a12" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)">
+
+  <!-- Верификация -->
   <meta name="yandex-verification" content="f675728736d21732">
   <meta name="google-site-verification" content="PNUPp1rtd7VsHIv6hhlrBH8ZpM7l-xRwhTcsaE0Tfao">
-  
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://gifs-search-ru.netlify.app/">
-  
-  <style>
-    /* Critical CSS - Inline for faster loading */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #61ff90, #24d65a);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    
-    .loader {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .loader:after {
-      content: '';
-      width: 50px;
-      height: 50px;
-      border: 4px solid #f0f0f0;
-      border-top: 4px solid #00BC5E;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .app {
-      background: white;
-      border-radius: 20px;
-      width: 90%;
-      max-width: 1200px;
-      height: 95vh;
-      padding: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    }
-  </style>
-  
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/styles.css"></noscript>
+
+  <link rel="preconnect" href="https://api.giphy.com">
+  <link rel="preconnect" href="https://media.giphy.com" crossorigin>
+
+  <!-- Тема до отрисовки, чтобы не было вспышки -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('gifTheme');
+        if (!saved) {
+          var legacy = localStorage.getItem('gifDarkTheme');
+          if (legacy !== null) saved = legacy === 'true' ? 'dark' : 'light';
+        }
+        var theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Bootstrap Icons: локальная копия, при её отсутствии — CDN (см. vendor/bootstrap-icons/README.md) -->
+  <link rel="stylesheet" id="bi-css"
+        href="/vendor/bootstrap-icons/font/bootstrap-icons.min.css"
+        onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'">
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 
 <body>
-  <!-- Loading Indicator -->
-  <div class="loader" id="loader" aria-live="polite" aria-label="Загрузка контента"></div>
+  <a class="skip-link" href="#main" data-i18n="a11y.skip">Перейти к содержимому</a>
 
-  <!-- Theme Toggle -->
-  <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему" title="Сменить тему">
-    <span class="theme-icon">🌙</span>
-  </button>
+  <div class="bg-glow" aria-hidden="true"></div>
 
-  <div class="app" role="main" id="main-content">
-    <!-- Header with improved semantics -->
-    <header role="banner">
-      <h1 itemprop="name">GIFS Поисковик</h1>
-      <p itemprop="description">Найдите, просмотрите и скачайте лучшие GIF анимации</p>
-    </header>
+  <!-- Верхняя панель -->
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="GIFS Поисковик">
+      <span class="brand-mark"><i class="bi bi-filetype-gif" aria-hidden="true"></i></span>
+      <span class="brand-name">GIFS</span>
+    </a>
 
-    <!-- Search Section -->
-    <section aria-labelledby="search-title" class="search-section">
-      <h2 id="search-title" class="visually-hidden">Поиск GIF анимаций</h2>
-      
-      <form id="search-form" class="search-form" role="search" aria-label="Поиск GIF анимаций">
-        <div class="search-input-wrapper">
-          <input 
-            type="text" 
-            id="search-input" 
-            placeholder="Например: котики, мемы, реакции..." 
-            required
-            aria-required="true"
-            aria-describedby="search-help"
-          >
-          <button type="submit" aria-label="Выполнить поиск">
-            <span class="search-icon">🔍</span>
-            Поиск
+    <div class="topbar-actions">
+      <div class="lang-switch" role="group" aria-label="Язык интерфейса" data-i18n-attr="aria-label:lang.label">
+        <i class="bi bi-translate" aria-hidden="true"></i>
+        <button type="button" data-lang="ru" lang="ru" aria-pressed="true">RU</button>
+        <button type="button" data-lang="en" lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="pl" lang="pl" aria-pressed="false">PL</button>
+      </div>
+
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Сменить тему">
+        <i class="bi bi-sun-fill" aria-hidden="true"></i>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" class="container">
+
+    <!-- Hero + поиск -->
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="badge">
+        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+        <span data-i18n="hero.badge">Бесплатно и без регистрации</span>
+      </p>
+      <h1 id="hero-title" data-i18n="hero.title">Находи гифки на любой случай</h1>
+      <p class="hero-sub" data-i18n="hero.subtitle">Ищи, смотри превью и качай — всё за пару кликов.</p>
+
+      <form id="search-form" class="search" role="search" aria-label="Поиск гифок" data-i18n-attr="aria-label:search.label">
+        <i class="bi bi-search search-ico" aria-hidden="true"></i>
+        <input type="search" id="search-input" name="q" required autocomplete="off" enterkeyhint="search"
+               maxlength="100" aria-describedby="search-help"
+               placeholder="Например: котики, мемы, реакции…"
+               data-i18n-attr="placeholder:search.placeholder;aria-label:search.label">
+        <button type="button" id="clear-btn" class="clear-btn" hidden
+                aria-label="Очистить поле" data-i18n-attr="aria-label:search.clear">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <span data-i18n="search.button">Искать</span>
+        </button>
+      </form>
+      <p id="search-help" class="hint" data-i18n="search.help">Пиши, что хочешь найти, а мы подберём гифки</p>
+
+      <!-- Категории -->
+      <div class="chips" role="group" aria-label="Популярные категории" data-i18n-attr="aria-label:cat.title">
+        <button type="button" class="chip" data-category="cats">
+          <i class="bi bi-emoji-heart-eyes" aria-hidden="true"></i><span data-i18n="cat.cats">Котики</span>
+        </button>
+        <button type="button" class="chip" data-category="memes">
+          <i class="bi bi-emoji-laughing" aria-hidden="true"></i><span data-i18n="cat.memes">Мемы</span>
+        </button>
+        <button type="button" class="chip" data-category="reactions">
+          <i class="bi bi-emoji-sunglasses" aria-hidden="true"></i><span data-i18n="cat.reactions">Реакции</span>
+        </button>
+        <button type="button" class="chip" data-category="animals">
+          <i class="bi bi-heart-fill" aria-hidden="true"></i><span data-i18n="cat.animals">Зверята</span>
+        </button>
+      </div>
+
+      <!-- История -->
+      <div class="history" aria-live="polite">
+        <div class="history-head">
+          <h2 class="history-title">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <span data-i18n="history.title">Недавние запросы</span>
+          </h2>
+          <button type="button" id="clear-history" class="link-btn" hidden>
+            <i class="bi bi-trash3" aria-hidden="true"></i>
+            <span data-i18n="history.clear">Очистить историю</span>
           </button>
         </div>
-        <p id="search-help" class="search-help">Введите ключевые слова для поиска GIF анимаций</p>
-      </form>
-    </section>
-
-    <!-- Quick Categories -->
-    <section aria-labelledby="categories-title" class="categories">
-      <h2 id="categories-title" class="visually-hidden">Популярные категории</h2>
-      <div class="categories-grid">
-        <button class="category-btn" data-category="cats" aria-label="Поиск гифок с котиками">😺 Котики</button>
-        <button class="category-btn" data-category="memes" aria-label="Поиск мемов">😂 Мемы</button>
-        <button class="category-btn" data-category="reactions" aria-label="Поиск реакций">🎭 Реакции</button>
-        <button class="category-btn" data-category="animals" aria-label="Поиск гифок с животными">🐶 Животные</button>
+        <div id="search-history" class="history-list"></div>
       </div>
     </section>
 
-    <!-- Controls -->
-    <section class="controls" aria-label="Управление контентом">
-      <div class="control-group">
-        <button id="trending-btn" class="active" aria-pressed="true">
-          <span class="btn-icon">🔥</span>
-          Популярные
-        </button>
-      </div>
-      
-      <!-- Results Info -->
-      <div class="results-info" id="results-info" aria-live="polite">
-        <span id="results-count">Загрузка...</span>
-      </div>
-    </section>
-
-    <!-- Search History -->
-    <section aria-labelledby="history-title" class="search-history-section">
-      <h3 id="history-title" class="visually-hidden">История поиска</h3>
-      <div id="search-history" class="search-history" aria-live="polite"></div>
-    </section>
-
-    <!-- Error Message -->
-    <div id="error-message" class="error-message" role="alert" aria-live="assertive"></div>
-
-    <!-- Main Content -->
-    <section aria-labelledby="section-title">
-      <h2 id="section-title" class="section-title">🔥 Популярные GIFs</h2>
-      
-      <!-- GIF Container -->
-      <div id="gif-container" class="gif-container" role="list" aria-label="Коллекция GIF анимаций">
-        <!-- GIF cards will be inserted here -->
-      </div>
-
-      <!-- Pagination -->
-      <nav class="pagination" aria-label="Навигация по страницам">
-        <button id="prev-page" class="pagination-btn" disabled aria-label="Предыдущая страница">
-          ← Назад
-        </button>
-        
-        <div class="pagination-info">
-          <span id="current-page">1</span> из <span id="total-pages">1</span>
+    <!-- Результаты -->
+    <section class="results" aria-labelledby="section-title">
+      <div class="results-head">
+        <div>
+          <h2 id="section-title" class="section-title">Сейчас в тренде</h2>
+          <p id="results-count" class="results-count" aria-live="polite"></p>
         </div>
-        
-        <button id="next-page" class="pagination-btn" aria-label="Следующая страница">
-          Вперед →
+        <button type="button" id="trending-btn" class="btn btn-ghost is-active" aria-pressed="true">
+          <i class="bi bi-fire" aria-hidden="true"></i>
+          <span data-i18n="trending.button">В тренде</span>
         </button>
-      </nav>
+      </div>
 
-      <!-- Load More -->
-      <button id="load-more" class="load-more" style="display: none;" aria-label="Загрузить больше GIF">
-        <span class="load-more-icon">⬇️</span>
-        Загрузить еще
-      </button>
+      <div id="error-message" class="alert" role="alert" hidden>
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <span id="error-text"></span>
+      </div>
+
+      <div id="gif-container" class="grid" role="list" aria-busy="true"
+           aria-label="Коллекция гифок" data-i18n-attr="aria-label:gif.list"></div>
+
+      <div class="more-wrap">
+        <button type="button" id="load-more" class="btn btn-ghost" hidden>
+          <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+          <span id="load-more-label" data-i18n="load.more">Показать ещё</span>
+        </button>
+      </div>
     </section>
-  </div>
+  </main>
 
-  <!-- Modal -->
-  <div id="modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true" hidden>
-    <div class="modal-backdrop"></div>
-    <div class="modal-content" role="document">
-      <button class="close-button" aria-label="Закрыть модальное окно">
-        &times;
+  <!-- Просмотр гифки -->
+  <dialog id="modal" class="modal" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <button type="button" id="modal-close" class="icon-btn modal-close"
+              aria-label="Закрыть" data-i18n-attr="aria-label:modal.close">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
       </button>
-      
-      <div class="modal-body">
-        <img 
-          id="modal-gif" 
-          class="modal-gif" 
-          src="" 
-          alt="" 
-          loading="lazy"
-        >
-        
-        <div class="gif-info">
-          <h3 id="modal-title">GIF анимация</h3>
-          <div class="gif-meta">
-            <p id="modal-rating"><strong>Рейтинг:</strong> <span>N/A</span></p>
-            <p id="modal-size"><strong>Размер:</strong> <span>N/A</span></p>
-            <p id="modal-uploaded"><strong>Загружено:</strong> <span>N/A</span></p>
-          </div>
-          
-          <div class="modal-actions">
-            <button id="copy-link" class="btn secondary" aria-label="Копировать ссылку">
-              <span class="btn-icon">📋</span>
-              Копировать ссылку
-            </button>
-            <button id="share-btn" class="btn secondary" aria-label="Поделиться GIF">
-              <span class="btn-icon">📤</span>
-              Поделиться
-            </button>
-          </div>
+
+      <div class="modal-media">
+        <img id="modal-gif" alt="" decoding="async">
+      </div>
+
+      <div class="modal-info">
+        <h3 id="modal-title" class="modal-title"></h3>
+
+        <dl class="meta">
+          <div><dt data-i18n="modal.rating">Рейтинг</dt><dd id="modal-rating">—</dd></div>
+          <div><dt data-i18n="modal.size">Размер</dt><dd id="modal-size">—</dd></div>
+          <div><dt data-i18n="modal.uploaded">Когда залили</dt><dd id="modal-uploaded">—</dd></div>
+        </dl>
+
+        <div class="modal-actions">
+          <button type="button" id="modal-download" class="btn btn-primary">
+            <i class="bi bi-download" aria-hidden="true"></i>
+            <span data-i18n="modal.download">Скачать</span>
+          </button>
+          <button type="button" id="copy-link" class="btn btn-ghost">
+            <i class="bi bi-link-45deg" aria-hidden="true"></i>
+            <span data-i18n="modal.copy">Скопировать ссылку</span>
+          </button>
+          <button type="button" id="share-btn" class="btn btn-ghost">
+            <i class="bi bi-share" aria-hidden="true"></i>
+            <span data-i18n="modal.share">Поделиться</span>
+          </button>
         </div>
       </div>
     </div>
-  </div>
+  </dialog>
 
-  <!-- Footer -->
-  <footer class="footer" role="contentinfo">
-    <div class="footer-content">
-      <p>&copy; 2025 GIFS Поисковик.</p>
-    </div>
+  <!-- Подвал -->
+  <footer class="footer">
+    <p>
+      &copy; 2025–<span id="year">2026</span>
+      <a href="https://psygiox-dev.vercel.app/" target="_blank" rel="noopener author">PsyGioX</a>
+      · <a href="https://github.com/PsyGioX/gifs-search-ru/blob/main/LICENSE" target="_blank" rel="noopener license" data-i18n="footer.license">Лицензия MIT</a>
+    </p>
+    <p class="footer-links">
+      <span><span data-i18n="footer.made">Сделано с</span>
+        <i class="bi bi-heart-fill heart" aria-hidden="true"></i>
+        <span data-i18n="footer.by">от</span> PsyGioX</span>
+      <a href="https://github.com/PsyGioX/gifs-search-ru" target="_blank" rel="noopener">
+        <i class="bi bi-github" aria-hidden="true"></i>
+        <span data-i18n="footer.source">Код на GitHub</span>
+      </a>
+      <a href="https://giphy.com/" target="_blank" rel="noopener">
+        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+        <span data-i18n="footer.giphy">Гифки от GIPHY</span>
+      </a>
+    </p>
   </footer>
 
-  <!-- Notification -->
-  <div id="notification" class="notification" role="status" aria-live="polite" aria-atomic="true"></div>
+  <!-- Уведомления -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+    <span id="toast-text"></span>
+  </div>
 
-  <!-- Scripts -->
-  <script src="script.js" defer></script>
-
-  <!-- CSS -->
-<link rel="stylesheet" href="https://cookies-widget-sergioplay.vercel.app/cookie-banner.css">
-
-<!-- JavaScript -->
-<script src="https://cookies-widget-sergioplay.vercel.app/cookie-banner.js"></script>
-
-  <!-- Yandex.Metrika counter -->
-  <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
-    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-    ym(99425095, "init", {
-      clickmap: true,
-      trackLinks: true,
-      accurateTrackBounce: true,
-      webvisor: true
-    });
-  </script>
-  <noscript>
-    <div><img src="https://mc.yandex.ru/watch/99425095" style="position:absolute; left:-9999px;" alt="Yandex Metrika"></div>
-  </noscript>
-  <!-- /Yandex.Metrika counter -->
-
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'GA_MEASUREMENT_ID');
-  </script>
+  <!-- Скрипты -->
+  <script src="/js/config.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/app.js" defer></script>
 </body>
 
 </html>

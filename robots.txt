@@ -1,4 +1,7 @@
+# GIFS Поисковик — robots.txt
+# Copyright (c) 2025–2026 PsyGioX <https://psygiox-dev.vercel.app/> — MIT License
 User-agent: *
-Disallow: /favicon/
-Disallow: /resources/
+Disallow: /api/
 Allow: /
+
+Sitemap: https://gifs-search-ru.netlify.app/sitemap.xml

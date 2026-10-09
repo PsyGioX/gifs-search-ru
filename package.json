@@ -1,0 +1,16 @@
+{
+  "name": "gifs-search-ru",
+  "version": "2.0.0",
+  "description": "GIFS Поисковик — поиск гифок, мемов и стикеров (RU / EN / PL)",
+  "license": "MIT",
+  "author": "PsyGioX <https://psygiox-dev.vercel.app/>",
+  "homepage": "https://gifs-search-ru.netlify.app/",
+  "repository": { "type": "git", "url": "git+https://github.com/PsyGioX/gifs-search-ru.git" },
+  "bugs": { "url": "https://github.com/PsyGioX/gifs-search-ru/issues" },
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "icons": "node scripts/fetch-icons.mjs",
+    "dev": "npx vercel dev"
+  }
+}

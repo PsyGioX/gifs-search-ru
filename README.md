@@ -1,32 +1,63 @@
-![](https://i.postimg.cc/FzWVShS0/GIFS.png)
+<!--
+  GIFS Поисковик — README.md
+  Copyright (c) 2025–2026 PsyGioX <https://psygiox-dev.vercel.app/> — MIT License
+-->
+![GIFS Поисковик](https://i.postimg.cc/FzWVShS0/GIFS.png)
 
-- [EN](https://translate.google.com/translate?sl=ru&tl=en&u=https://github.com/PsyGioX/gifs-search-ru/)
-- [Перейти на сайт проекта](https://gifs-search-ru.netlify.app/)
+# GIFS Поисковик
 
-# GIFS Поисковик — Веселые гифки, стикеры и короткие видео мемы
+Поиск гифок, мемов и стикеров с превью и скачиванием. Интерфейс на **русском, английском и польском** (разговорный стиль).
 
-Простой и удобный поисковик GIF-анимаций с возможностью предпросмотра и загрузки.  
+[Демо](https://gifs-search-ru.netlify.app/) · [Автор — PsyGioX](https://psygiox-dev.vercel.app/) · [GitHub](https://github.com/PsyGioX/gifs-search-ru)
 
----
+## Возможности
 
-## 🚀 Возможности  
-- 🔎 Поиск GIF по ключевым словам  
-- 👀 Предпросмотр анимаций перед скачиванием  
-- ⚡ Быстрая загрузка благодаря оптимизированному коду  
-- 📱 Адаптивный дизайн (работает на ПК и мобильных устройствах)  
+- Поиск и трендовая лента GIPHY, подгрузка по кнопке «Показать ещё»
+- Просмотр в диалоге, скачивание, копирование ссылки, «Поделиться»
+- Тёмная и светлая темы (по умолчанию как в системе)
+- RU / EN / PL: автоопределение языка, переключатель, параметр `?lang=pl`
+- История запросов, категории, скелетоны загрузки, PWA с офлайн-оболочкой
+- Иконки Bootstrap Icons вместо эмодзи
+- Ключ GIPHY спрятан за serverless-прокси (`api/giphy.js`)
 
----
+## Запуск
 
-## 🛠 Технологии  
-- **HTML** — 35.1%  
-- **CSS** — 35.9%  
-- **JavaScript** — 20.0%  
+```bash
+npm run icons                 # скачать Bootstrap Icons в vendor/
+cp .env.example .env.local    # вписать GIPHY_API_KEY
+npx vercel dev                # http://localhost:3000
+```
 
----
+### Деплой на Vercel
 
-## 🤝 Как помочь проекту
-🐞 Сообщайте об ошибках в Issues
+1. Импортируй репозиторий в Vercel.
+2. Project → Settings → Environment Variables → добавь `GIPHY_API_KEY`.
+3. Redeploy.
 
-💡 Предлагайте улучшения через Pull Requests
+> Старый ключ был в открытом виде в истории Git — перевыпусти его в [GIPHY Developers](https://developers.giphy.com/dashboard/).
 
-⭐ Поставьте звезду репозиторию, если проект вам понравился!
+## Структура
+
+```
+index.html            разметка
+css/styles.css        стили и темы
+js/config.js          настройки
+js/i18n.js            переводы и движок i18n
+js/app.js             логика приложения
+api/giphy.js          прокси к GIPHY (ключ из env)
+sw.js                 service worker
+scripts/fetch-icons.mjs   загрузка Bootstrap Icons
+vendor/bootstrap-icons/   локальная копия иконок
+```
+
+## Как добавить язык
+
+1. В `js/i18n.js` скопируй блок `ru` в `DICT` и переведи значения.
+2. Добавь код в `LOCALES` (например `de: 'de_DE'`) и в `supportedLangs` (`js/config.js`) и `LANGS` (`api/giphy.js`).
+3. Добавь кнопку `<button data-lang="de">DE</button>` в `index.html`.
+
+Для склонений используй объект `{ one, few, many, other }`, подстановки — `{n}`, `{q}`.
+
+## Лицензия
+
+[MIT](LICENSE) © 2025–2026 PsyGioX. Bootstrap Icons — MIT, © The Bootstrap Authors. Гифки предоставлены GIPHY.
