@@ -8,7 +8,7 @@
 
 Поиск гифок, мемов и стикеров с превью и скачиванием. Интерфейс на **русском, английском и польском** (разговорный стиль).
 
-[Демо](https://gifs-search-ru.netlify.app/) · [Автор — PsyGioX](https://psygiox-dev.vercel.app/) · [GitHub](https://github.com/PsyGioX/gifs-search-ru)
+[Демо](https://gifs-search-khaki.vercel.app/) · [Автор — PsyGioX](https://psygiox-dev.vercel.app/) · [GitHub](https://github.com/PsyGioX/gifs-search-ru)
 
 ## Возможности
 
