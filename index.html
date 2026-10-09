@@ -94,9 +94,22 @@
   </script>
 
   <!-- Bootstrap Icons: локальная копия, при её отсутствии — CDN (см. vendor/bootstrap-icons/README.md) -->
-  <link rel="stylesheet" id="bi-css"
-        href="/vendor/bootstrap-icons/font/bootstrap-icons.min.css"
-        onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'">
+  <link rel="stylesheet" id="bi-css" href="/vendor/bootstrap-icons/font/bootstrap-icons.min.css">
+  <script>
+    (function () {
+      var link = document.getElementById('bi-css'), done = false;
+      function fallback() {
+        if (done) return; done = true;
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css';
+        document.head.appendChild(l);
+      }
+      link.addEventListener('error', fallback);
+      // Если сервер отдал не CSS (404, text/plain), у link не будет sheet
+      window.addEventListener('load', function () { if (!link.sheet) fallback(); });
+    })();
+  </script>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 

@@ -5,7 +5,7 @@
  * https://github.com/PsyGioX/gifs-search-ru
  */
 
-const VERSION = 'gifs-v2';
+const VERSION = 'gifs-v3';
 const SHELL = [
   '/',
   '/css/styles.css',
@@ -45,7 +45,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then((cached) => {
       const network = fetch(request).then((res) => {
-        if (res.ok) caches.open(VERSION).then((c) => c.put(request, res.clone()));
+        if (res.ok) {
+          const copy = res.clone(); // клонируем сразу, пока тело не прочитано
+          caches.open(VERSION).then((c) => c.put(request, copy));
+        }
         return res;
       }).catch(() => cached);
       return cached || network;
